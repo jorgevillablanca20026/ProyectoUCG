@@ -12,38 +12,40 @@ def init():
         st.session_state.page = "login"
 
 
-# LOGIN
 def login():
     st.title("🔐 Login")
 
     users = load_users()
 
     u = st.text_input("Usuario")
-    p = st.text_input("Password", type="password")
+    p = st.text_input("Contraseña", type="password")
 
-    if st.button("Entrar"):
-        ok = users[(users["usuario"] == u) & (users["password"] == p)]
+    col1, col2 = st.columns(2)
 
-        if not ok.empty:
-            st.session_state.auth = True
-            st.session_state.user = u
+    with col1:
+        if st.button("Entrar"):
+            ok = users[(users["usuario"] == u) & (users["password"] == p)]
+
+            if not ok.empty:
+                st.session_state.auth = True
+                st.session_state.user = u
+                st.rerun()
+            else:
+                st.error("Credenciales incorrectas")
+
+    with col2:
+        if st.button("Registrarse"):
+            st.session_state.page = "register"
             st.rerun()
-        else:
-            st.error("Incorrecto")
-
-    if st.button("Registrarse"):
-        st.session_state.page = "register"
-        st.rerun()
 
 
-# REGISTRO (GUARDA EN users1.csv)
 def register():
     st.title("🆕 Registro")
 
     users = load_users()
 
     u = st.text_input("Nuevo usuario")
-    p = st.text_input("Nueva password", type="password")
+    p = st.text_input("Nueva contraseña", type="password")
 
     if st.button("Crear usuario"):
         if u == "" or p == "":
@@ -55,10 +57,9 @@ def register():
             return
 
         new_user = pd.DataFrame([{"usuario": u, "password": p}])
-
         users = pd.concat([users, new_user], ignore_index=True)
 
-        save_users(users)  # 🔥 GUARDA EN users1.csv
+        save_users(users)
 
         st.success("Usuario creado")
         st.session_state.page = "login"
