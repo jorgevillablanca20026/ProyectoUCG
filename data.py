@@ -1,7 +1,9 @@
 import pandas as pd
 import os
 
-FILE = "data.csv"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FILE = os.path.join(BASE_DIR, "data.csv")
+
 
 def load_data():
     if not os.path.exists(FILE):
