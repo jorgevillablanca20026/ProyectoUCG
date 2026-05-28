@@ -8,7 +8,7 @@ from crud_sqlite import create_product, get_all, update_stock, delete_product
 # ---------------- INIT ----------------
 init_db()
 
-# ---------------- STATE DEFAULTS ----------------
+# ---------------- STATE ----------------
 if "menu" not in st.session_state:
     st.session_state.menu = "Ver"
 
@@ -26,7 +26,8 @@ state = auth_router()
 if state != "ok":
     st.stop()
 
-st.title(f"Inventario - {st.session_state.user}")
+# ---------------- HEADER ----------------
+st.title(f"Sistema de Inventario - {st.session_state.user}")
 
 # ---------------- LOGOUT ----------------
 if st.button("Cerrar sesión"):
@@ -35,10 +36,10 @@ if st.button("Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ---------------- SIDEBAR (ESTO ARREGLA TODO) ----------------
+# ---------------- SIDEBAR ----------------
 st.sidebar.title("Menú")
 
-if st.sidebar.button("Ver productos"):
+if st.sidebar.button("Ver inventario"):
     st.session_state.menu = "Ver"
 
 if st.sidebar.button("Registrar producto"):
@@ -56,12 +57,27 @@ menu = st.session_state.menu
 rows = get_all()
 df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","categoria"])
 
-# ---------------- VER ----------------
+# ================= VER INVENTARIO =================
 if menu == "Ver":
+
+    st.subheader("Inventario de productos")
+
     st.dataframe(df)
 
-# ---------------- CREAR ----------------
+    # 🔥 GRÁFICO 1: productos por categoría
+    if len(df) > 0:
+        st.subheader("Productos por categoría")
+        st.bar_chart(df["categoria"].value_counts())
+
+        # 🔥 GRÁFICO 2: stock total por producto
+        st.subheader("Stock por producto")
+        chart_df = df[["nombre", "stock"]].set_index("nombre")
+        st.bar_chart(chart_df)
+
+# ================= CREAR =================
 elif menu == "Crear":
+
+    st.subheader("Registrar producto")
 
     nombre = st.text_input("Nombre")
     descripcion = st.text_input("Descripción")
@@ -69,7 +85,7 @@ elif menu == "Crear":
     stock = st.number_input("Stock", min_value=0)
     categoria = st.selectbox("Categoría", ["Periféricos","Audio","Laptops","Otro"])
 
-    if st.button("Guardar"):
+    if st.button("Guardar producto"):
 
         if nombre.strip() == "":
             st.error("El nombre es obligatorio.")
@@ -82,30 +98,34 @@ elif menu == "Crear":
                 "categoria": categoria
             })
 
-            # 🔥 MENSAJE GARANTIZADO
             st.session_state.msg = "Producto registrado correctamente."
             st.session_state.menu = "Ver"
-
             st.rerun()
 
-# ---------------- EDITAR ----------------
+# ================= EDITAR =================
 elif menu == "Editar":
 
-    id_ = st.number_input("ID", min_value=1)
-    stock = st.number_input("Stock", min_value=0)
+    st.subheader("Editar stock")
+
+    id_ = st.number_input("ID del producto", min_value=1)
+    stock = st.number_input("Nuevo stock", min_value=0)
 
     if st.button("Actualizar"):
+
         update_stock(id_, stock)
         st.session_state.msg = "Stock actualizado correctamente."
         st.session_state.menu = "Ver"
         st.rerun()
 
-# ---------------- ELIMINAR ----------------
+# ================= ELIMINAR =================
 elif menu == "Eliminar":
 
-    id_ = st.number_input("ID", min_value=1)
+    st.subheader("Eliminar producto")
+
+    id_ = st.number_input("ID del producto", min_value=1)
 
     if st.button("Eliminar"):
+
         delete_product(id_)
         st.session_state.msg = "Producto eliminado correctamente."
         st.session_state.menu = "Ver"
