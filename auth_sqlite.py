@@ -2,6 +2,7 @@ import streamlit as st
 from database import get_conn
 
 
+# ---------------- INIT STATE ----------------
 def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
@@ -11,13 +12,38 @@ def init():
         st.session_state.page = "login"
 
 
+# ---------------- LOGIN UI ----------------
 def login():
-    st.title("Login")
+    st.markdown(
+        """
+        <style>
+        .login-box {
+            max-width: 400px;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 12px;
+            background-color: #111827;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .title {
+            text-align: center;
+            color: white;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    st.markdown("<div class='title'>Sistema de Inventario</div>", unsafe_allow_html=True)
 
     u = st.text_input("Usuario")
     p = st.text_input("Contraseña", type="password")
 
-    if st.button("Entrar"):
+    if st.button("Ingresar"):
         conn = get_conn()
         c = conn.cursor()
 
@@ -32,18 +58,23 @@ def login():
         else:
             st.error("Credenciales incorrectas")
 
-    if st.button("Registrarse"):
+    st.markdown("---")
+
+    if st.button("Crear cuenta"):
         st.session_state.page = "register"
         st.rerun()
 
+    st.markdown("</div>", unsafe_allow_html=True)
 
+
+# ---------------- REGISTER ----------------
 def register():
-    st.title("Registro")
+    st.title("Registro de usuario")
 
-    u = st.text_input("Usuario")
-    p = st.text_input("Contraseña", type="password")
+    u = st.text_input("Nuevo usuario")
+    p = st.text_input("Nueva contraseña", type="password")
 
-    if st.button("Crear usuario"):
+    if st.button("Registrar"):
         conn = get_conn()
         c = conn.cursor()
 
@@ -60,7 +91,14 @@ def register():
             conn.close()
             st.error("El usuario ya existe")
 
+    st.markdown("---")
 
+    if st.button("Volver al login"):
+        st.session_state.page = "login"
+        st.rerun()
+
+
+# ---------------- ROUTER ----------------
 def auth_router():
     init()
 
