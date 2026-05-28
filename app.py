@@ -8,6 +8,10 @@ from crud_sqlite import create_product, get_all, update_stock, delete_product
 # ---------------- INIT ----------------
 init_db()
 
+# ---------------- NAV STATE ----------------
+if "menu" not in st.session_state:
+    st.session_state.menu = "Ver productos"
+
 # ---------------- MENSAJE FORMAL ----------------
 if st.session_state.get("created"):
     st.success("Producto registrado correctamente.")
@@ -30,7 +34,13 @@ if st.button("Cerrar sesión"):
     st.rerun()
 
 # ---------------- MENU ----------------
-menu = st.selectbox("Opciones", ["Ver productos", "Registrar producto", "Editar stock", "Eliminar producto"])
+menu = st.selectbox(
+    "Opciones",
+    ["Ver productos", "Registrar producto", "Editar stock", "Eliminar producto"],
+    index=["Ver productos", "Registrar producto", "Editar stock", "Eliminar producto"].index(
+        st.session_state.menu
+    )
+)
 
 # ---------------- DATA ----------------
 rows = get_all()
@@ -65,7 +75,8 @@ elif menu == "Registrar producto":
                 "categoria": categoria
             })
 
-            st.session_state["created"] = True
+            st.session_state.created = True
+            st.session_state.menu = "Ver productos"
             st.rerun()
 
 # ---------------- EDITAR ----------------
@@ -75,6 +86,7 @@ elif menu == "Editar stock":
     stock = st.number_input("Nuevo stock", min_value=0)
 
     if st.button("Actualizar"):
+
         update_stock(id_, stock)
         st.success("Stock actualizado correctamente.")
         st.rerun()
@@ -85,6 +97,8 @@ elif menu == "Eliminar producto":
     id_ = st.number_input("ID del producto", min_value=1)
 
     if st.button("Eliminar"):
+
         delete_product(id_)
+        st.session_state.menu = "Ver productos"
         st.success("Producto eliminado correctamente.")
         st.rerun()
