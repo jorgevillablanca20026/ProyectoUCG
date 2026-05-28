@@ -1,5 +1,5 @@
 import streamlit as st
-from database_sqlite import get_conn
+from database import get_conn
 
 
 def init():
@@ -32,8 +32,6 @@ def login():
         else:
             st.error("Incorrecto")
 
-    st.markdown("---")
-
     if st.button("Registrarse"):
         st.session_state.page = "register"
         st.rerun()
@@ -52,12 +50,14 @@ def register():
         try:
             c.execute("INSERT INTO users (usuario, password) VALUES (?, ?)", (u, p))
             conn.commit()
+            conn.close()
 
             st.success("Usuario creado correctamente")
             st.session_state.page = "login"
             st.rerun()
 
         except:
+            conn.close()
             st.error("El usuario ya existe")
 
 
