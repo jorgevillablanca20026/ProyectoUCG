@@ -1,6 +1,7 @@
 import streamlit as st
 from database import get_conn
 
+
 def init_session():
     if "auth" not in st.session_state:
         st.session_state.auth = False
@@ -10,41 +11,22 @@ def init_session():
         st.session_state.page = "login"
 
 
-def register():
-    st.title("Registro")
-
-    u = st.text_input("Usuario")
-    p = st.text_input("Password", type="password")
-
-    if st.button("Crear usuario"):
-        conn = get_conn()
-        c = conn.cursor()
-
-        try:
-            c.execute("INSERT INTO users (usuario, password) VALUES (?, ?)", (u, p))
-            conn.commit()
-            st.success("Usuario creado")
-            st.session_state.page = "login"
-            st.rerun()
-        except:
-            st.error("Usuario ya existe")
-
-        conn.close()
-
-
+# ================= LOGIN =================
 def login():
-    st.title("Login")
+    st.title("🔐 Login")
 
     u = st.text_input("Usuario")
-    p = st.text_input("Password", type="password")
+    p = st.text_input("Contraseña", type="password")
 
     if st.button("Entrar"):
         conn = get_conn()
         c = conn.cursor()
 
-        c.execute("SELECT * FROM users WHERE usuario=? AND password=?", (u, p))
+        c.execute(
+            "SELECT * FROM users WHERE usuario=? AND password=?",
+            (u, p)
+        )
         data = c.fetchone()
-
         conn.close()
 
         if data:
@@ -54,7 +36,45 @@ def login():
         else:
             st.error("Credenciales incorrectas")
 
+    # 🔥 BOTÓN DE REGISTRO (LO QUE TE FALTABA)
+    st.markdown("---")
+    st.write("¿No tienes cuenta?")
 
+    if st.button("🆕 Registrarse"):
+        st.session_state.page = "register"
+        st.rerun()
+
+
+# ================= REGISTER =================
+def register():
+    st.title("🆕 Registro")
+
+    u = st.text_input("Nuevo usuario")
+    p = st.text_input("Contraseña", type="password")
+
+    if st.button("Crear cuenta"):
+        conn = get_conn()
+        c = conn.cursor()
+
+        try:
+            c.execute(
+                "INSERT INTO users (usuario, password) VALUES (?, ?)",
+                (u, p)
+            )
+            conn.commit()
+            conn.close()
+
+            st.success("Usuario creado correctamente")
+
+            # volver a login
+            st.session_state.page = "login"
+            st.rerun()
+
+        except:
+            st.error("El usuario ya existe")
+
+
+# ================= ROUTER =================
 def auth_router():
     init_session()
 
