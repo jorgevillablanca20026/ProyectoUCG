@@ -6,8 +6,7 @@ DB_PATH = os.path.join(BASE_DIR, "app.db")
 
 
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    return conn
+    return sqlite3.connect(DB_PATH)
 
 
 def init_db():
