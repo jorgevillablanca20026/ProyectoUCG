@@ -1,4 +1,4 @@
-from database_sqlite import get_conn
+from database import get_conn
 
 
 def create_product(p):
@@ -19,10 +19,10 @@ def get_all():
     c = conn.cursor()
 
     c.execute("SELECT * FROM products")
-    data = c.fetchall()
+    rows = c.fetchall()
 
     conn.close()
-    return data
+    return rows
 
 
 def update_stock(id_, stock):
