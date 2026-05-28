@@ -36,8 +36,9 @@ def login():
         else:
             st.error("Credenciales incorrectas")
 
-    # 🔥 BOTÓN DE REGISTRO (LO QUE TE FALTABA)
     st.markdown("---")
+
+    # 🔥 AQUÍ ESTÁ EL REGISTER BIEN PUESTO
     st.write("¿No tienes cuenta?")
 
     if st.button("🆕 Registrarse"):
@@ -53,6 +54,11 @@ def register():
     p = st.text_input("Contraseña", type="password")
 
     if st.button("Crear cuenta"):
+
+        if u == "" or p == "":
+            st.error("Completa todos los campos")
+            return
+
         conn = get_conn()
         c = conn.cursor()
 
@@ -66,12 +72,17 @@ def register():
 
             st.success("Usuario creado correctamente")
 
-            # volver a login
             st.session_state.page = "login"
             st.rerun()
 
         except:
-            st.error("El usuario ya existe")
+            conn.close()
+
+            st.error("❌ El usuario ya existe")
+
+            if st.button("🔐 Ir al login"):
+                st.session_state.page = "login"
+                st.rerun()
 
 
 # ================= ROUTER =================
