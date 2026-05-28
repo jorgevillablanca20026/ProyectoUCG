@@ -3,7 +3,7 @@ import pandas as pd
 from data import load_users, save_users
 
 
-def init():
+def init_session():
     if "auth" not in st.session_state:
         st.session_state.auth = False
     if "user" not in st.session_state:
@@ -20,23 +20,19 @@ def login():
     u = st.text_input("Usuario")
     p = st.text_input("Contraseña", type="password")
 
-    col1, col2 = st.columns(2)
+    if st.button("Entrar"):
+        ok = users[(users["usuario"] == u) & (users["password"] == p)]
 
-    with col1:
-        if st.button("Entrar"):
-            ok = users[(users["usuario"] == u) & (users["password"] == p)]
-
-            if not ok.empty:
-                st.session_state.auth = True
-                st.session_state.user = u
-                st.rerun()
-            else:
-                st.error("Credenciales incorrectas")
-
-    with col2:
-        if st.button("Registrarse"):
-            st.session_state.page = "register"
+        if not ok.empty:
+            st.session_state.auth = True
+            st.session_state.user = u
             st.rerun()
+        else:
+            st.error("Credenciales incorrectas")
+
+    if st.button("Registrarse"):
+        st.session_state.page = "register"
+        st.rerun()
 
 
 def register():
@@ -48,6 +44,7 @@ def register():
     p = st.text_input("Nueva contraseña", type="password")
 
     if st.button("Crear usuario"):
+
         if u == "" or p == "":
             st.error("Completa campos")
             return
@@ -56,18 +53,22 @@ def register():
             st.error("Usuario ya existe")
             return
 
-        new_user = pd.DataFrame([{"usuario": u, "password": p}])
+        # 🔥 CREAR USUARIO CORRECTO
+        new_user = pd.DataFrame([[u, p]], columns=["usuario", "password"])
+
+        # 🔥 CONCATENAR BIEN
         users = pd.concat([users, new_user], ignore_index=True)
 
+        # 🔥 GUARDAR EN CSV (ESTO ERA LO QUE FALLABA)
         save_users(users)
 
-        st.success("Usuario creado")
+        st.success("Usuario creado correctamente")
         st.session_state.page = "login"
         st.rerun()
 
 
 def auth_router():
-    init()
+    init_session()
 
     if st.session_state.auth:
         return "ok"
