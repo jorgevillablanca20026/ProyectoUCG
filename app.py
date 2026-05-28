@@ -7,20 +7,14 @@ from crud_sqlite import create_product, get_all, update_stock, delete_product
 
 init_db()
 
-# 🔥 MOSTRAR MENSAJE PERSISTENTE (IMPORTANTE)
-if "msg" in st.session_state:
-    st.success(st.session_state.msg)
-    del st.session_state.msg
-
-
 state = auth_router()
 
 if state != "ok":
     st.stop()
 
-st.title(f"Inventario - {st.session_state.user}")
+st.title(f"📦 Inventario - {st.session_state.user}")
 
-if st.button("Cerrar sesión"):
+if st.button("🚪 Cerrar sesión"):
     st.session_state.auth = False
     st.session_state.user = ""
     st.session_state.page = "login"
@@ -34,6 +28,8 @@ df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","c
 # ---------------- VER ----------------
 if menu == "Ver":
     st.dataframe(df)
+    if len(df) > 0:
+        st.bar_chart(df["categoria"].value_counts())
 
 # ---------------- CREAR ----------------
 elif menu == "Crear":
@@ -54,8 +50,8 @@ elif menu == "Crear":
             "categoria": c
         })
 
-        # 🔥 MENSAJE QUE SÍ SE VE (ARREGLADO)
-        st.session_state.msg = "Su producto fue registrado correctamente"
+        # 🔥 ALERTA POPUP
+        st.toast("🎉 Producto creado correctamente")
 
         st.rerun()
 
