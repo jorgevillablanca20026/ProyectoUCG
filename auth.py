@@ -3,22 +3,22 @@ import pandas as pd
 from data import load_users, save_users
 
 
-def init_auth():
+def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
     if "user" not in st.session_state:
-        st.session_state.user = None
+        st.session_state.user = ""
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
 
-def login_view():
+def login():
     st.title("🔐 Login")
 
     users = load_users()
 
     u = st.text_input("Usuario")
-    p = st.text_input("Contraseña", type="password")
+    p = st.text_input("Password", type="password")
 
     if st.button("Entrar"):
         ok = users[(users["usuario"] == u) & (users["password"] == p)]
@@ -28,58 +28,50 @@ def login_view():
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Incorrecto")
+            st.error("Datos incorrectos")
 
-    st.markdown("---")
-
-    if st.button("🆕 Registrarse"):
+    if st.button("Registrarse"):
         st.session_state.page = "register"
         st.rerun()
 
 
-def register_view():
+def register():
     st.title("🆕 Registro")
 
     users = load_users()
 
     u = st.text_input("Nuevo usuario")
-    p = st.text_input("Contraseña", type="password")
+    p = st.text_input("Nueva password", type="password")
 
-    col1, col2 = st.columns(2)
+    if st.button("Crear usuario"):
+        if u == "" or p == "":
+            st.error("Completa campos")
+            return
 
-    with col1:
-        if st.button("Crear"):
-            if u == "" or p == "":
-                st.error("Completa campos")
-                return
+        if u in users["usuario"].values:
+            st.error("Usuario ya existe")
+            return
 
-            if u in users["usuario"].values:
-                st.error("Ya existe")
-                return
+        new_user = pd.DataFrame([{"usuario": u, "password": p}])
+        users = pd.concat([users, new_user], ignore_index=True)
 
-            new = pd.DataFrame([{"usuario": u, "password": p}])
-            users = pd.concat([users, new], ignore_index=True)
-            save_users(users)
+        save_users(users)   # 🔥 GUARDA REALMENTE
 
-            st.success("Creado")
-            st.session_state.page = "login"
-            st.rerun()
+        st.success("Usuario creado")
 
-    with col2:
-        if st.button("Volver"):
-            st.session_state.page = "login"
-            st.rerun()
+        st.session_state.page = "login"
+        st.rerun()
 
 
 def auth_router():
-    init_auth()
+    init()
 
     if st.session_state.auth:
         return "ok"
 
     if st.session_state.page == "register":
-        register_view()
+        register()
     else:
-        login_view()
+        login()
 
     return "stop"
