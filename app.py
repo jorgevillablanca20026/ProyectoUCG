@@ -1,4 +1,5 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 
 from auth import auth_router
 from crud import create_product, get_all, delete_product, update_stock
@@ -16,11 +17,29 @@ menu = st.sidebar.selectbox("Menú", ["Ver", "Crear", "Editar", "Eliminar"])
 
 df = get_all()
 
-# VER
+# ---------------- VER ----------------
 if menu == "Ver":
+    st.subheader("📋 Productos")
     st.dataframe(df)
 
-# CREAR
+    st.markdown("---")
+    st.subheader("📊 Productos por categoría")
+
+    if len(df) > 0:
+        data = df["categoria"].value_counts()
+
+        fig, ax = plt.subplots()
+        data.plot(kind="bar", ax=ax, color="skyblue")
+
+        ax.set_xlabel("Categoría")
+        ax.set_ylabel("Cantidad")
+        ax.set_title("Inventario por categoría")
+
+        st.pyplot(fig)
+    else:
+        st.info("No hay productos")
+
+# ---------------- CREAR ----------------
 elif menu == "Crear":
     n = st.text_input("Nombre")
     d = st.text_input("Descripción")
@@ -39,10 +58,10 @@ elif menu == "Crear":
         }
 
         create_product(nuevo)
-        st.success("Guardado en data1.csv")
+        st.success("Guardado")
         st.rerun()
 
-# EDITAR
+# ---------------- EDITAR ----------------
 elif menu == "Editar":
     id_ = st.number_input("ID", min_value=1)
     stock = st.number_input("Nuevo stock", min_value=0)
@@ -51,7 +70,7 @@ elif menu == "Editar":
         update_stock(id_, stock)
         st.rerun()
 
-# ELIMINAR
+# ---------------- ELIMINAR ----------------
 elif menu == "Eliminar":
     id_ = st.number_input("ID", min_value=1)
 
