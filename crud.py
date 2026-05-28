@@ -8,6 +8,10 @@ def create_product(p):
     save_data(df)
 
 
+def get_all():
+    return load_data()
+
+
 def delete_product(id_):
     df = load_data()
     df = df[df["id"] != id_]
@@ -18,7 +22,3 @@ def update_stock(id_, stock):
     df = load_data()
     df.loc[df["id"] == id_, "stock"] = stock
     save_data(df)
-
-
-def get_all():
-    return load_data()
