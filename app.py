@@ -2,7 +2,6 @@ import streamlit as st
 
 from auth import auth_router
 from crud import create_product, get_all, delete_product, update_stock
-from data import load_data
 
 st.set_page_config(page_title="Inventario", layout="wide")
 
@@ -27,7 +26,7 @@ elif menu == "Crear":
     d = st.text_input("Descripción")
     p = st.number_input("Precio", min_value=0.0)
     s = st.number_input("Stock", min_value=0)
-    c = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
+    c = st.selectbox("Categoría", ["Periféricos","Audio","Laptops","Otro"])
 
     if st.button("Guardar"):
         nuevo = {
@@ -40,7 +39,7 @@ elif menu == "Crear":
         }
 
         create_product(nuevo)
-        st.success("Guardado")
+        st.success("Guardado en data1.csv")
         st.rerun()
 
 # EDITAR
@@ -50,7 +49,6 @@ elif menu == "Editar":
 
     if st.button("Actualizar"):
         update_stock(id_, stock)
-        st.success("Actualizado")
         st.rerun()
 
 # ELIMINAR
@@ -59,5 +57,4 @@ elif menu == "Eliminar":
 
     if st.button("Eliminar"):
         delete_product(id_)
-        st.success("Eliminado")
         st.rerun()
