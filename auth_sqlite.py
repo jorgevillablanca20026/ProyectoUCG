@@ -1,0 +1,69 @@
+import streamlit as st
+from database import get_conn
+
+def init_session():
+    if "auth" not in st.session_state:
+        st.session_state.auth = False
+    if "user" not in st.session_state:
+        st.session_state.user = ""
+    if "page" not in st.session_state:
+        st.session_state.page = "login"
+
+
+def register():
+    st.title("Registro")
+
+    u = st.text_input("Usuario")
+    p = st.text_input("Password", type="password")
+
+    if st.button("Crear usuario"):
+        conn = get_conn()
+        c = conn.cursor()
+
+        try:
+            c.execute("INSERT INTO users (usuario, password) VALUES (?, ?)", (u, p))
+            conn.commit()
+            st.success("Usuario creado")
+            st.session_state.page = "login"
+            st.rerun()
+        except:
+            st.error("Usuario ya existe")
+
+        conn.close()
+
+
+def login():
+    st.title("Login")
+
+    u = st.text_input("Usuario")
+    p = st.text_input("Password", type="password")
+
+    if st.button("Entrar"):
+        conn = get_conn()
+        c = conn.cursor()
+
+        c.execute("SELECT * FROM users WHERE usuario=? AND password=?", (u, p))
+        data = c.fetchone()
+
+        conn.close()
+
+        if data:
+            st.session_state.auth = True
+            st.session_state.user = u
+            st.rerun()
+        else:
+            st.error("Credenciales incorrectas")
+
+
+def auth_router():
+    init_session()
+
+    if st.session_state.auth:
+        return "ok"
+
+    if st.session_state.page == "register":
+        register()
+    else:
+        login()
+
+    return "stop"
