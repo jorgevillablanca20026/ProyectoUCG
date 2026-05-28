@@ -36,20 +36,25 @@ if st.button("Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.title("Menú")
+# ---------------- SIDEBAR PRO ----------------
+st.sidebar.title("📊 Panel de control")
 
-if st.sidebar.button("Ver inventario"):
+st.sidebar.markdown("---")
+
+if st.sidebar.button("📦 Ver inventario"):
     st.session_state.menu = "Ver"
 
-if st.sidebar.button("Registrar producto"):
+if st.sidebar.button("➕ Registrar producto"):
     st.session_state.menu = "Crear"
 
-if st.sidebar.button("Editar stock"):
+if st.sidebar.button("✏️ Editar stock"):
     st.session_state.menu = "Editar"
 
-if st.sidebar.button("Eliminar producto"):
+if st.sidebar.button("🗑️ Eliminar producto"):
     st.session_state.menu = "Eliminar"
+
+st.sidebar.markdown("---")
+st.sidebar.info("Sistema de inventario con Streamlit + SQLite")
 
 menu = st.session_state.menu
 
@@ -57,22 +62,18 @@ menu = st.session_state.menu
 rows = get_all()
 df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","categoria"])
 
-# ================= VER INVENTARIO =================
+# ================= VER =================
 if menu == "Ver":
 
     st.subheader("Inventario de productos")
-
     st.dataframe(df)
 
-    # 🔥 GRÁFICO 1: productos por categoría
     if len(df) > 0:
         st.subheader("Productos por categoría")
         st.bar_chart(df["categoria"].value_counts())
 
-        # 🔥 GRÁFICO 2: stock total por producto
         st.subheader("Stock por producto")
-        chart_df = df[["nombre", "stock"]].set_index("nombre")
-        st.bar_chart(chart_df)
+        st.bar_chart(df.set_index("nombre")["stock"])
 
 # ================= CREAR =================
 elif menu == "Crear":
@@ -83,7 +84,7 @@ elif menu == "Crear":
     descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
-    categoria = st.selectbox("Categoría", ["Periféricos","Audio","Laptops","Otro"])
+    categoria = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
 
     if st.button("Guardar producto"):
 
