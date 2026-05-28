@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-BASE_DIR = "."
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 USERS_FILE = os.path.join(BASE_DIR, "users1.csv")
 DATA_FILE = os.path.join(BASE_DIR, "data1.csv")
@@ -16,7 +16,10 @@ def load_users():
 
 
 def save_users(df):
-    df.to_csv(USERS_FILE, index=False)
+    # 🔥 escritura segura (evita pérdida en Streamlit)
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        df.to_csv(f, index=False)
+        f.flush()
 
 
 def load_data():
@@ -28,4 +31,6 @@ def load_data():
 
 
 def save_data(df):
-    df.to_csv(DATA_FILE, index=False)
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        df.to_csv(f, index=False)
+        f.flush()
