@@ -6,14 +6,14 @@ from data import load_users, save_users
 def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
-    if "user" not in st.session_state:
-        st.session_state.user = ""
     if "page" not in st.session_state:
         st.session_state.page = "login"
+    if "user" not in st.session_state:
+        st.session_state.user = ""
 
 
 def login():
-    st.title("🔐 Login")
+    st.title("Login")
 
     users = load_users()
 
@@ -36,24 +36,24 @@ def login():
 
 
 def register():
-    st.title("🆕 Registro")
+    st.title("Registro")
 
     users = load_users()
 
-    u = st.text_input("Nuevo usuario")
+    u = st.text_input("Usuario")
     p = st.text_input("Contraseña", type="password")
 
     if st.button("Crear usuario"):
 
         if u == "" or p == "":
-            st.error("Completa campos")
+            st.error("Campos vacíos")
             return
 
         if u in users["usuario"].values:
             st.error("Ya existe")
             return
 
-        new_user = pd.DataFrame([[u, p]], columns=["usuario","password"])
+        new_user = pd.DataFrame([[u, p]], columns=["usuario", "password"])
         users = pd.concat([users, new_user], ignore_index=True)
 
         save_users(users)
