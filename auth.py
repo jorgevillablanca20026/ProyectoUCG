@@ -3,12 +3,17 @@ import streamlit as st
 USUARIO = "admin"
 PASSWORD = "1234"
 
+import streamlit as st
+
+USUARIO = "admin"
+PASSWORD = "1234"
+
 def init_auth():
     if "auth" not in st.session_state:
         st.session_state["auth"] = False
 
 def login():
-    st.title("🔐 Login")
+    st.title("Login")
 
     user = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
@@ -18,10 +23,10 @@ def login():
             st.session_state["auth"] = True
             st.rerun()
         else:
-            st.error("Credenciales incorrectas")
+            st.error("Incorrecto")
 
 def logout():
-    if st.sidebar.button("Cerrar sesión"):
+    if st.sidebar.button("Salir"):
         st.session_state["auth"] = False
         st.rerun()
 
