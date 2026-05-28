@@ -6,22 +6,24 @@ from data import load_users, save_users
 def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
-    if "page" not in st.session_state:
-        st.session_state.page = "login"
     if "user" not in st.session_state:
         st.session_state.user = ""
+    if "page" not in st.session_state:
+        st.session_state.page = "login"
 
 
 def login():
-    st.title("Login")
+    st.title("🔐 Login")
 
     users = load_users()
 
     u = st.text_input("Usuario")
-    p = st.text_input("Password", type="password")
+    p = st.text_input("Contraseña", type="password")
 
     if st.button("Entrar"):
-        if ((users["usuario"] == u) & (users["password"] == p)).any():
+        ok = users[(users["usuario"] == u) & (users["password"] == p)]
+
+        if not ok.empty:
             st.session_state.auth = True
             st.session_state.user = u
             st.rerun()
@@ -34,17 +36,17 @@ def login():
 
 
 def register():
-    st.title("Registro")
+    st.title("🆕 Registro")
 
     users = load_users()
 
-    u = st.text_input("Usuario")
-    p = st.text_input("Password", type="password")
+    u = st.text_input("Nuevo usuario")
+    p = st.text_input("Contraseña", type="password")
 
     if st.button("Crear usuario"):
 
         if u == "" or p == "":
-            st.error("Campos vacíos")
+            st.error("Completa campos")
             return
 
         if u in users["usuario"].values:
@@ -56,7 +58,7 @@ def register():
 
         save_users(users)
 
-        st.success("Usuario creado")
+        st.success("Usuario creado correctamente")
         st.session_state.page = "login"
         st.rerun()
 
