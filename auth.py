@@ -3,13 +3,14 @@ import streamlit as st
 USUARIO = "admin"
 PASSWORD = "1234"
 
+
 def init_auth():
     if "auth" not in st.session_state:
         st.session_state["auth"] = False
 
 
 def login():
-    st.title(" Login")
+    st.title("🔐 Login")
 
     user = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
