@@ -36,25 +36,26 @@ if st.button("Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ---------------- SIDEBAR PRO ----------------
-st.sidebar.title("📊 Panel de control")
+# ---------------- SIDEBAR ACORDEÓN ----------------
+st.sidebar.title("Panel de control")
+
+with st.sidebar.expander("📦 Inventario", expanded=True):
+    if st.button("Ver productos"):
+        st.session_state.menu = "Ver"
+
+with st.sidebar.expander("➕ Productos"):
+    if st.button("Registrar producto"):
+        st.session_state.menu = "Crear"
+
+with st.sidebar.expander("✏️ Gestión"):
+    if st.button("Editar stock"):
+        st.session_state.menu = "Editar"
+
+    if st.button("Eliminar producto"):
+        st.session_state.menu = "Eliminar"
 
 st.sidebar.markdown("---")
-
-if st.sidebar.button("📦 Ver inventario"):
-    st.session_state.menu = "Ver"
-
-if st.sidebar.button("➕ Registrar producto"):
-    st.session_state.menu = "Crear"
-
-if st.sidebar.button("✏️ Editar stock"):
-    st.session_state.menu = "Editar"
-
-if st.sidebar.button("🗑️ Eliminar producto"):
-    st.session_state.menu = "Eliminar"
-
-st.sidebar.markdown("---")
-st.sidebar.info("Sistema de inventario con Streamlit + SQLite")
+st.sidebar.info("Sistema de inventario con SQLite + Streamlit")
 
 menu = st.session_state.menu
 
