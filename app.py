@@ -5,13 +5,12 @@ from database import init_db
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
 
-# ---------------- INIT DB ----------------
+# ---------------- INIT ----------------
 init_db()
 
-# ---------------- ALERTA POST CREACIÓN ----------------
+# ---------------- MENSAJE FORMAL ----------------
 if st.session_state.get("created"):
-    st.success("🎉 Producto creado correctamente")
-    st.balloons()
+    st.success("Producto registrado correctamente.")
     st.session_state["created"] = False
 
 # ---------------- AUTH ----------------
@@ -21,78 +20,71 @@ if state != "ok":
     st.stop()
 
 # ---------------- HEADER ----------------
-st.title(f"📦 Inventario - {st.session_state.user}")
+st.title(f"Inventario - {st.session_state.user}")
 
 # ---------------- LOGOUT ----------------
-if st.button("🚪 Cerrar sesión"):
+if st.button("Cerrar sesión"):
     st.session_state.auth = False
     st.session_state.user = ""
     st.session_state.page = "login"
     st.rerun()
 
 # ---------------- MENU ----------------
-menu = st.selectbox("Menú", ["Ver", "Crear", "Editar", "Eliminar"])
+menu = st.selectbox("Opciones", ["Ver productos", "Registrar producto", "Editar stock", "Eliminar producto"])
 
 # ---------------- DATA ----------------
 rows = get_all()
-df = pd.DataFrame(
-    rows,
-    columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"]
-)
+df = pd.DataFrame(rows, columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"])
 
 # ---------------- VER ----------------
-if menu == "Ver":
+if menu == "Ver productos":
     st.dataframe(df)
 
-    # 📊 GRAFICO DE CATEGORÍAS
     if len(df) > 0:
-        st.subheader("📊 Productos por categoría")
         st.bar_chart(df["categoria"].value_counts())
 
 # ---------------- CREAR ----------------
-elif menu == "Crear":
+elif menu == "Registrar producto":
 
-    n = st.text_input("Nombre")
-    d = st.text_input("Descripción")
-    p = st.number_input("Precio", 0.0)
-    s = st.number_input("Stock", 0)
-    c = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
+    nombre = st.text_input("Nombre")
+    descripcion = st.text_input("Descripción")
+    precio = st.number_input("Precio", min_value=0.0)
+    stock = st.number_input("Stock", min_value=0)
+    categoria = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
 
-    if st.button("Guardar producto"):
+    if st.button("Guardar"):
 
-        if n == "":
-            st.error("El nombre es obligatorio")
+        if nombre.strip() == "":
+            st.error("El nombre es obligatorio.")
         else:
             create_product({
-                "nombre": n,
-                "descripcion": d,
-                "precio": p,
-                "stock": s,
-                "categoria": c
+                "nombre": nombre,
+                "descripcion": descripcion,
+                "precio": precio,
+                "stock": stock,
+                "categoria": categoria
             })
 
-            # 🔥 FLAG PARA ALERTA
             st.session_state["created"] = True
-
             st.rerun()
 
 # ---------------- EDITAR ----------------
-elif menu == "Editar":
+elif menu == "Editar stock":
 
-    id_ = st.number_input("ID producto", min_value=1)
+    id_ = st.number_input("ID del producto", min_value=1)
     stock = st.number_input("Nuevo stock", min_value=0)
 
-    if st.button("Actualizar stock"):
+    if st.button("Actualizar"):
         update_stock(id_, stock)
-        st.success("Stock actualizado")
+        st.success("Stock actualizado correctamente.")
         st.rerun()
 
 # ---------------- ELIMINAR ----------------
-elif menu == "Eliminar":
+elif menu == "Eliminar producto":
 
-    id_ = st.number_input("ID producto", min_value=1)
+    id_ = st.number_input("ID del producto", min_value=1)
 
     if st.button("Eliminar"):
         delete_product(id_)
-        st.success("Producto eliminado")
+        st.success("Producto eliminado correctamente.")
         st.rerun()
