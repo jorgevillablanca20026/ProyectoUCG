@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from database_sqlite import init_db
+from database import init_db
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
 
@@ -27,8 +27,6 @@ df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","c
 
 if menu == "Ver":
     st.dataframe(df)
-    if len(df) > 0:
-        st.bar_chart(df["categoria"].value_counts())
 
 elif menu == "Crear":
     n = st.text_input("Nombre")
