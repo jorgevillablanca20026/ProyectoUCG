@@ -4,7 +4,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE = os.path.join(BASE_DIR, "data.csv")
 
-
 def load_data():
     if not os.path.exists(FILE):
         df = pd.DataFrame(columns=[
@@ -12,9 +11,7 @@ def load_data():
         ])
         df.to_csv(FILE, index=False)
         return df
-
     return pd.read_csv(FILE)
-
 
 def save_data(df):
     df.to_csv(FILE, index=False)
