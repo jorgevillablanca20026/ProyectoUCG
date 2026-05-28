@@ -1,4 +1,5 @@
-from database import get_conn
+from database_sqlite import get_conn
+
 
 def create_product(p):
     conn = get_conn()
@@ -18,20 +19,10 @@ def get_all():
     c = conn.cursor()
 
     c.execute("SELECT * FROM products")
-    rows = c.fetchall()
+    data = c.fetchall()
 
     conn.close()
-    return rows
-
-
-def delete_product(id_):
-    conn = get_conn()
-    c = conn.cursor()
-
-    c.execute("DELETE FROM products WHERE id=?", (id_,))
-
-    conn.commit()
-    conn.close()
+    return data
 
 
 def update_stock(id_, stock):
@@ -39,6 +30,16 @@ def update_stock(id_, stock):
     c = conn.cursor()
 
     c.execute("UPDATE products SET stock=? WHERE id=?", (stock, id_))
+
+    conn.commit()
+    conn.close()
+
+
+def delete_product(id_):
+    conn = get_conn()
+    c = conn.cursor()
+
+    c.execute("DELETE FROM products WHERE id=?", (id_,))
 
     conn.commit()
     conn.close()
