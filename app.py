@@ -29,16 +29,10 @@ if state != "ok":
 # ---------------- HEADER ----------------
 st.title(f"Sistema de Inventario - {st.session_state.user}")
 
-# ---------------- LOGOUT ----------------
-if st.button("Cerrar sesión"):
-    st.session_state.auth = False
-    st.session_state.user = ""
-    st.session_state.page = "login"
-    st.rerun()
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("📊 Panel de control")
 
-# ---------------- SIDEBAR ACORDEÓN ----------------
-st.sidebar.title("Panel de control")
-
+# --- ACORDEÓN ---
 with st.sidebar.expander("📦 Inventario", expanded=True):
     if st.button("Ver productos"):
         st.session_state.menu = "Ver"
@@ -54,9 +48,18 @@ with st.sidebar.expander("✏️ Gestión"):
     if st.button("Eliminar producto"):
         st.session_state.menu = "Eliminar"
 
+# ---------------- LOGOUT EN SIDEBAR ----------------
 st.sidebar.markdown("---")
+
+if st.sidebar.button("🚪 Cerrar sesión"):
+    st.session_state.auth = False
+    st.session_state.user = ""
+    st.session_state.page = "login"
+    st.rerun()
+
 st.sidebar.info("Sistema de inventario con SQLite + Streamlit")
 
+# ---------------- MENU ACTUAL ----------------
 menu = st.session_state.menu
 
 # ---------------- DATA ----------------
@@ -89,7 +92,6 @@ elif menu == "Crear":
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
 
-    # 🔥 AQUÍ ESTÁ EL CAMBIO
     categoria = st.selectbox(
         "Categoría",
         ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"]
