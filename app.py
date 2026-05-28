@@ -32,32 +32,39 @@ elif menu == "Crear":
     descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
-    categoria = st.text_input("Categoría")
+
+    categoria = st.selectbox(
+        "Categoría",
+        ["Periféricos", "Laptops", "Accesorios", "Audio", "Otro"]
+    )
 
     if st.button("Guardar"):
-        nuevo = {
-            "id": int(df["id"].max() + 1) if len(df) > 0 else 1,
-            "nombre": nombre,
-            "descripcion": descripcion,
-            "precio": precio,
-            "stock": stock,
-            "categoria": categoria
-        }
+        if nombre == "" or descripcion == "":
+            st.error("Completa nombre y descripción")
+        else:
+            nuevo = {
+                "id": int(df["id"].max() + 1) if len(df) > 0 else 1,
+                "nombre": nombre,
+                "descripcion": descripcion,
+                "precio": precio,
+                "stock": stock,
+                "categoria": categoria
+            }
 
-        create_product(nuevo)
-        st.success("Producto creado")
-        st.rerun()
+            create_product(nuevo)
+            st.success("Producto creado")
+            st.rerun()
 
 # ---------------- EDITAR ----------------
 elif menu == "Editar":
-    st.subheader("✏️ Actualizar stock")
+    st.subheader("✏️ Editar stock")
 
     id_edit = st.number_input("ID producto", min_value=1)
     stock = st.number_input("Nuevo stock", min_value=0)
 
     if st.button("Actualizar"):
         update_stock(id_edit, stock)
-        st.success("Stock actualizado")
+        st.success("Actualizado")
         st.rerun()
 
 # ---------------- ELIMINAR ----------------
@@ -68,6 +75,5 @@ elif menu == "Eliminar":
 
     if st.button("Eliminar"):
         delete_product(id_del)
-        st.success("Producto eliminado")
-        st.rerun()
+        st.success("Eliminado")
         st.rerun()
