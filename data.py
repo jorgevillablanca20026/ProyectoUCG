@@ -3,22 +3,8 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FILE = os.path.join(BASE_DIR, "data.csv")
 USERS_FILE = os.path.join(BASE_DIR, "users.csv")
-
-
-def load_data():
-    if not os.path.exists(FILE):
-        df = pd.DataFrame(columns=[
-            "id", "nombre", "descripcion", "precio", "stock", "categoria"
-        ])
-        df.to_csv(FILE, index=False)
-        return df
-    return pd.read_csv(FILE)
-
-
-def save_data(df):
-    df.to_csv(FILE, index=False)
+DATA_FILE = os.path.join(BASE_DIR, "data.csv")
 
 
 def load_users():
@@ -31,3 +17,17 @@ def load_users():
 
 def save_users(df):
     df.to_csv(USERS_FILE, index=False)
+
+
+def load_data():
+    if not os.path.exists(DATA_FILE):
+        df = pd.DataFrame(columns=[
+            "id", "nombre", "descripcion", "precio", "stock", "categoria"
+        ])
+        df.to_csv(DATA_FILE, index=False)
+        return df
+    return pd.read_csv(DATA_FILE)
+
+
+def save_data(df):
+    df.to_csv(DATA_FILE, index=False)
