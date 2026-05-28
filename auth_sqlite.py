@@ -22,15 +22,15 @@ def login():
         c = conn.cursor()
 
         c.execute("SELECT * FROM users WHERE usuario=? AND password=?", (u, p))
-        data = c.fetchone()
+        user = c.fetchone()
         conn.close()
 
-        if data:
+        if user:
             st.session_state.auth = True
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Incorrecto")
+            st.error("Credenciales incorrectas")
 
     if st.button("Registrarse"):
         st.session_state.page = "register"
