@@ -8,14 +8,17 @@ from crud_sqlite import create_product, get_all, update_stock, delete_product
 # ---------------- INIT ----------------
 init_db()
 
-# ---------------- DEFAULT MENU ----------------
+# ---------------- STATE DEFAULTS ----------------
 if "menu" not in st.session_state:
-    st.session_state.menu = "Ver productos"
+    st.session_state.menu = "Ver"
 
-# ---------------- ALERTA CREACIÓN ----------------
-if st.session_state.get("created"):
-    st.success("Producto registrado correctamente.")
-    st.session_state["created"] = False
+if "msg" not in st.session_state:
+    st.session_state.msg = ""
+
+# ---------------- MENSAJE ----------------
+if st.session_state.msg:
+    st.success(st.session_state.msg)
+    st.session_state.msg = ""
 
 # ---------------- AUTH ----------------
 state = auth_router()
@@ -23,7 +26,6 @@ state = auth_router()
 if state != "ok":
     st.stop()
 
-# ---------------- HEADER ----------------
 st.title(f"Inventario - {st.session_state.user}")
 
 # ---------------- LOGOUT ----------------
@@ -33,38 +35,39 @@ if st.button("Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ---------------- MENU (IMPORTANTE FIX) ----------------
-menu_options = ["Ver productos", "Registrar producto", "Editar stock", "Eliminar producto"]
+# ---------------- SIDEBAR (ESTO ARREGLA TODO) ----------------
+st.sidebar.title("Menú")
 
-menu = st.selectbox(
-    "Opciones",
-    menu_options,
-    index=menu_options.index(st.session_state.menu),
-    key="menu_selector"
-)
+if st.sidebar.button("Ver productos"):
+    st.session_state.menu = "Ver"
 
-# 🔥 sincronizar estado SIEMPRE
-st.session_state.menu = menu
+if st.sidebar.button("Registrar producto"):
+    st.session_state.menu = "Crear"
+
+if st.sidebar.button("Editar stock"):
+    st.session_state.menu = "Editar"
+
+if st.sidebar.button("Eliminar producto"):
+    st.session_state.menu = "Eliminar"
+
+menu = st.session_state.menu
 
 # ---------------- DATA ----------------
 rows = get_all()
-df = pd.DataFrame(rows, columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"])
+df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","categoria"])
 
 # ---------------- VER ----------------
-if menu == "Ver productos":
+if menu == "Ver":
     st.dataframe(df)
 
-    if len(df) > 0:
-        st.bar_chart(df["categoria"].value_counts())
-
 # ---------------- CREAR ----------------
-elif menu == "Registrar producto":
+elif menu == "Crear":
 
     nombre = st.text_input("Nombre")
     descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
-    categoria = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
+    categoria = st.selectbox("Categoría", ["Periféricos","Audio","Laptops","Otro"])
 
     if st.button("Guardar"):
 
@@ -79,30 +82,31 @@ elif menu == "Registrar producto":
                 "categoria": categoria
             })
 
-            # 🔥 FORZAR REDIRECCIÓN REAL
-            st.session_state.created = True
-            st.session_state.menu = "Ver productos"
+            # 🔥 MENSAJE GARANTIZADO
+            st.session_state.msg = "Producto registrado correctamente."
+            st.session_state.menu = "Ver"
 
             st.rerun()
 
 # ---------------- EDITAR ----------------
-elif menu == "Editar stock":
+elif menu == "Editar":
 
-    id_ = st.number_input("ID del producto", min_value=1)
-    stock = st.number_input("Nuevo stock", min_value=0)
+    id_ = st.number_input("ID", min_value=1)
+    stock = st.number_input("Stock", min_value=0)
 
     if st.button("Actualizar"):
         update_stock(id_, stock)
-        st.success("Stock actualizado correctamente.")
+        st.session_state.msg = "Stock actualizado correctamente."
+        st.session_state.menu = "Ver"
         st.rerun()
 
 # ---------------- ELIMINAR ----------------
-elif menu == "Eliminar producto":
+elif menu == "Eliminar":
 
-    id_ = st.number_input("ID del producto", min_value=1)
+    id_ = st.number_input("ID", min_value=1)
 
     if st.button("Eliminar"):
         delete_product(id_)
-        st.session_state.menu = "Ver productos"
-        st.success("Producto eliminado correctamente.")
+        st.session_state.msg = "Producto eliminado correctamente."
+        st.session_state.menu = "Ver"
         st.rerun()
