@@ -1,6 +1,4 @@
 import streamlit as st
-import matplotlib.pyplot as plt
-
 from auth import auth_router
 from crud import create_product, get_all, delete_product, update_stock
 
@@ -8,10 +6,22 @@ st.set_page_config(page_title="Inventario", layout="wide")
 
 state = auth_router()
 
+# ❌ si no está logueado
 if state != "ok":
     st.stop()
 
+# ---------------- HEADER ----------------
 st.title(f"📦 Inventario - {st.session_state.user}")
+
+# 🔥 LOGOUT (ESTO TE FALTABA)
+col1, col2 = st.columns([8,1])
+
+with col2:
+    if st.button("🚪 Cerrar sesión"):
+        st.session_state.auth = False
+        st.session_state.user = ""
+        st.session_state.page = "login"
+        st.rerun()
 
 menu = st.sidebar.selectbox("Menú", ["Ver", "Crear", "Editar", "Eliminar"])
 
@@ -19,25 +29,12 @@ df = get_all()
 
 # ---------------- VER ----------------
 if menu == "Ver":
-    st.subheader("📋 Productos")
     st.dataframe(df)
 
-    st.markdown("---")
-    st.subheader("📊 Productos por categoría")
-
+    # gráfico sin matplotlib (EVITA ERRORES)
+    st.subheader("📊 Categorías")
     if len(df) > 0:
-        data = df["categoria"].value_counts()
-
-        fig, ax = plt.subplots()
-        data.plot(kind="bar", ax=ax, color="skyblue")
-
-        ax.set_xlabel("Categoría")
-        ax.set_ylabel("Cantidad")
-        ax.set_title("Inventario por categoría")
-
-        st.pyplot(fig)
-    else:
-        st.info("No hay productos")
+        st.bar_chart(df["categoria"].value_counts())
 
 # ---------------- CREAR ----------------
 elif menu == "Crear":
@@ -68,6 +65,7 @@ elif menu == "Editar":
 
     if st.button("Actualizar"):
         update_stock(id_, stock)
+        st.success("Actualizado")
         st.rerun()
 
 # ---------------- ELIMINAR ----------------
@@ -76,4 +74,5 @@ elif menu == "Eliminar":
 
     if st.button("Eliminar"):
         delete_product(id_)
+        st.success("Eliminado")
         st.rerun()
