@@ -61,7 +61,10 @@ menu = st.session_state.menu
 
 # ---------------- DATA ----------------
 rows = get_all()
-df = pd.DataFrame(rows, columns=["id","nombre","descripcion","precio","stock","categoria"])
+df = pd.DataFrame(
+    rows,
+    columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"]
+)
 
 # ================= VER =================
 if menu == "Ver":
@@ -85,7 +88,12 @@ elif menu == "Crear":
     descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
-    categoria = st.selectbox("Categoría", ["Periféricos", "Audio", "Laptops", "Otro"])
+
+    # 🔥 AQUÍ ESTÁ EL CAMBIO
+    categoria = st.selectbox(
+        "Categoría",
+        ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"]
+    )
 
     if st.button("Guardar producto"):
 
