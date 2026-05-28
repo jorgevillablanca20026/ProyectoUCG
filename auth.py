@@ -12,6 +12,7 @@ def init():
         st.session_state.page = "login"
 
 
+# LOGIN
 def login():
     st.title("🔐 Login")
 
@@ -28,13 +29,14 @@ def login():
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Datos incorrectos")
+            st.error("Incorrecto")
 
     if st.button("Registrarse"):
         st.session_state.page = "register"
         st.rerun()
 
 
+# REGISTRO (GUARDA EN users1.csv)
 def register():
     st.title("🆕 Registro")
 
@@ -53,12 +55,12 @@ def register():
             return
 
         new_user = pd.DataFrame([{"usuario": u, "password": p}])
+
         users = pd.concat([users, new_user], ignore_index=True)
 
-        save_users(users)   # 🔥 GUARDA REALMENTE
+        save_users(users)  # 🔥 GUARDA EN users1.csv
 
         st.success("Usuario creado")
-
         st.session_state.page = "login"
         st.rerun()
 
