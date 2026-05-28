@@ -13,10 +13,7 @@ def load_data():
         df.to_csv(DATA_FILE, index=False, encoding="utf-8")
         return df
 
-    try:
-        return pd.read_csv(DATA_FILE, encoding="utf-8")
-    except:
-        return pd.DataFrame(columns=["id","nombre","descripcion","precio","stock","categoria"])
+    return pd.read_csv(DATA_FILE, encoding="utf-8")
 
 
 def save_data(df):
@@ -29,10 +26,7 @@ def load_users():
         df.to_csv(USERS_FILE, index=False, encoding="utf-8")
         return df
 
-    try:
-        return pd.read_csv(USERS_FILE, encoding="utf-8")
-    except:
-        return pd.DataFrame(columns=["usuario","password"])
+    return pd.read_csv(USERS_FILE, encoding="utf-8")
 
 
 def save_users(df):
