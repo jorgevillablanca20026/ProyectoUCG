@@ -11,9 +11,9 @@ if not is_authenticated():
 
 logout()
 
-st.title("Inventario")
+st.title(f"📦 Inventario - Usuario: {st.session_state['user']}")
 
-menu = st.sidebar.selectbox("Menu", ["Ver", "Crear", "Editar", "Eliminar"])
+menu = st.sidebar.selectbox("Menú", ["Ver", "Crear", "Editar", "Eliminar"])
 
 df = get_all()
 
@@ -22,10 +22,10 @@ if menu == "Ver":
 
 elif menu == "Crear":
     nombre = st.text_input("Nombre")
-    descripcion = st.text_input("Descripcion")
+    descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
     stock = st.number_input("Stock", min_value=0)
-    categoria = st.selectbox("Categoria", ["Perifericos", "Laptops", "Audio", "Otro"])
+    categoria = st.selectbox("Categoría", ["Periféricos", "Laptops", "Audio", "Otro"])
 
     if st.button("Guardar"):
         nuevo = {
@@ -53,3 +53,4 @@ elif menu == "Eliminar":
     if st.button("Eliminar"):
         delete_product(id_del)
         st.rerun()
+ 
