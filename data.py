@@ -2,7 +2,10 @@ import pandas as pd
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 FILE = os.path.join(BASE_DIR, "data.csv")
+USERS_FILE = os.path.join(BASE_DIR, "users.csv")
+
 
 def load_data():
     if not os.path.exists(FILE):
@@ -13,5 +16,18 @@ def load_data():
         return df
     return pd.read_csv(FILE)
 
+
 def save_data(df):
     df.to_csv(FILE, index=False)
+
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        df = pd.DataFrame(columns=["usuario", "password"])
+        df.to_csv(USERS_FILE, index=False)
+        return df
+    return pd.read_csv(USERS_FILE)
+
+
+def save_users(df):
+    df.to_csv(USERS_FILE, index=False)
