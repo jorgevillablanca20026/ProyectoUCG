@@ -2,7 +2,7 @@ import streamlit as st
 from database import get_conn
 
 
-# ---------------- INIT STATE ----------------
+# ---------------- INIT ----------------
 def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
@@ -12,42 +12,25 @@ def init():
         st.session_state.page = "login"
 
 
-# ---------------- LOGIN UI ----------------
+# ---------------- LOGIN ----------------
 def login():
-    st.markdown(
-        """
-        <style>
-        .login-box {
-            max-width: 400px;
-            margin: auto;
-            padding: 2rem;
-            border-radius: 12px;
-            background-color: #111827;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
-        }
 
-        .title {
-            text-align: center;
-            color: white;
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-    st.markdown("<div class='title'>Sistema de Inventario</div>", unsafe_allow_html=True)
+    st.title("Sistema de Inventario")
+    st.caption("Inicia sesión para continuar")
 
     u = st.text_input("Usuario")
     p = st.text_input("Contraseña", type="password")
 
     if st.button("Ingresar"):
+
         conn = get_conn()
         c = conn.cursor()
 
-        c.execute("SELECT * FROM users WHERE usuario=? AND password=?", (u, p))
+        c.execute(
+            "SELECT * FROM users WHERE usuario=? AND password=?",
+            (u, p)
+        )
+
         user = c.fetchone()
         conn.close()
 
@@ -56,30 +39,33 @@ def login():
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("Credenciales incorrectas")
+            st.error("Usuario o contraseña incorrectos")
 
     st.markdown("---")
 
-    if st.button("Crear cuenta"):
+    if st.button("Registrarse"):
         st.session_state.page = "register"
         st.rerun()
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ---------------- REGISTER ----------------
 def register():
+
     st.title("Registro de usuario")
 
     u = st.text_input("Nuevo usuario")
     p = st.text_input("Nueva contraseña", type="password")
 
-    if st.button("Registrar"):
+    if st.button("Crear cuenta"):
+
         conn = get_conn()
         c = conn.cursor()
 
         try:
-            c.execute("INSERT INTO users (usuario, password) VALUES (?, ?)", (u, p))
+            c.execute(
+                "INSERT INTO users (usuario, password) VALUES (?, ?)",
+                (u, p)
+            )
             conn.commit()
             conn.close()
 
@@ -100,6 +86,7 @@ def register():
 
 # ---------------- ROUTER ----------------
 def auth_router():
+
     init()
 
     if st.session_state.auth:
