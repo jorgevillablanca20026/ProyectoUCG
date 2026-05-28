@@ -1,26 +1,31 @@
 import streamlit as st
 
-from auth import login, logout, is_authenticated
+from auth import auth_router, logout
 from crud import create_product, delete_product, update_stock, get_all
 
 st.set_page_config(page_title="Inventario", layout="wide")
 
-if not is_authenticated():
-    login()
+state = auth_router()
+
+if state != "ok":
     st.stop()
 
 logout()
 
-st.title(f"📦 Inventario - Usuario: {st.session_state['user']}")
+st.title(f"📦 Inventario - {st.session_state.user}")
 
 menu = st.sidebar.selectbox("Menú", ["Ver", "Crear", "Editar", "Eliminar"])
 
 df = get_all()
 
+# ---------------- VER ----------------
 if menu == "Ver":
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
+# ---------------- CREAR ----------------
 elif menu == "Crear":
+    st.subheader("➕ Nuevo producto")
+
     nombre = st.text_input("Nombre")
     descripcion = st.text_input("Descripción")
     precio = st.number_input("Precio", min_value=0.0)
@@ -36,21 +41,30 @@ elif menu == "Crear":
             "stock": stock,
             "categoria": categoria
         }
+
         create_product(nuevo)
+        st.success("Creado")
         st.rerun()
 
+# ---------------- EDITAR ----------------
 elif menu == "Editar":
-    id_edit = st.number_input("ID", min_value=1)
+    st.subheader("✏️ Editar stock")
+
+    id_ = st.number_input("ID", min_value=1)
     stock = st.number_input("Nuevo stock", min_value=0)
 
     if st.button("Actualizar"):
-        update_stock(id_edit, stock)
+        update_stock(id_, stock)
+        st.success("Actualizado")
         st.rerun()
 
+# ---------------- ELIMINAR ----------------
 elif menu == "Eliminar":
-    id_del = st.number_input("ID", min_value=1)
+    st.subheader("❌ Eliminar")
+
+    id_ = st.number_input("ID", min_value=1)
 
     if st.button("Eliminar"):
-        delete_product(id_del)
+        delete_product(id_)
+        st.success("Eliminado")
         st.rerun()
- 
