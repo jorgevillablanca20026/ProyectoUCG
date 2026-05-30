@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
@@ -22,7 +23,7 @@ if st.session_state.msg:
     st.success(st.session_state.msg)
     st.session_state.msg = ""
 
-# ---------------- SIDEBAR ----------------
+# ---------------- SIDEBAR (ACORDEÓN) ----------------
 st.sidebar.title("📊 Panel de control")
 
 with st.sidebar.expander("📦 Inventario", expanded=True):
@@ -48,30 +49,11 @@ if st.sidebar.button("🚪 Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ================= FUNCIÓN NORMALIZAR DATOS =================
-def normalizar(rows):
-    """
-    🔥 ARREGLA EL PROBLEMA REAL:
-    convierte cualquier respuesta rara de Supabase en DataFrame usable
-    """
-    if not rows:
-        return pd.DataFrame()
-
-    # si viene lista de dicts normal
-    if isinstance(rows[0], dict):
-        return pd.DataFrame(rows)
-
-    # si viene lista de tuplas
-    try:
-        return pd.DataFrame(rows, columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"])
-    except:
-        return pd.DataFrame(rows)
-
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
     rows = get_all()
-    df = normalizar(rows)
+    df = pd.DataFrame(rows)
 
     st.subheader("Inventario de productos")
     st.dataframe(df)
@@ -82,23 +64,37 @@ if st.session_state.menu == "Ver":
 
     df = df.fillna("")
 
-    # ---------------- GRÁFICO CATEGORÍAS ----------------
+    # ================= GRÁFICO CATEGORÍAS (CON COLORES) =================
     if "categoria" in df.columns:
+
         st.subheader("Productos por categoría")
 
-        st.bar_chart(df["categoria"].astype(str).value_counts())
+        cat = df["categoria"].astype(str).value_counts().reset_index()
+        cat.columns = ["categoria", "cantidad"]
 
-    # ---------------- GRÁFICO STOCK ----------------
+        chart = (
+            alt.Chart(cat)
+            .mark_bar()
+            .encode(
+                x=alt.X("categoria", sort=None),
+                y="cantidad",
+                color="categoria"
+            )
+        )
+
+        st.altair_chart(chart, use_container_width=True)
+
+    # ================= GRÁFICO STOCK =================
     if "nombre" in df.columns and "stock" in df.columns:
+
         st.subheader("Stock por producto")
 
         df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
 
-        chart = df.dropna(subset=["nombre", "stock"])
-        chart = chart.groupby("nombre")["stock"].sum()
+        chart_df = df.dropna(subset=["nombre", "stock"])
+        chart_df = chart_df.groupby("nombre")["stock"].sum()
 
-        if not chart.empty:
-            st.bar_chart(chart)
+        st.bar_chart(chart_df)
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
