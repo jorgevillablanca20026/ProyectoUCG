@@ -4,7 +4,7 @@ import pandas as pd
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
 
-# ---------------- INIT STATE ----------------
+# ---------------- STATE ----------------
 if "menu" not in st.session_state:
     st.session_state.menu = "Ver"
 
@@ -17,11 +17,17 @@ state = auth_router()
 if state != "ok":
     st.stop()
 
+st.title(f"Sistema de Inventario - {st.session_state.user}")
+
 # ---------------- DATA ----------------
 rows = get_all()
 df = pd.DataFrame(rows)
 
-st.title(f"Sistema de Inventario - {st.session_state.user}")
+if df.empty:
+    st.warning("No hay productos registrados")
+    st.stop()
+
+df = df.fillna("")
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("📊 Panel")
@@ -44,38 +50,21 @@ if st.sidebar.button("Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ---------------- VALIDACIÓN DATA ----------------
-if df.empty:
-    st.warning("No hay productos registrados")
-    st.stop()
-
-df = df.fillna("")
-
-# convertir stock a número seguro
-if "stock" in df.columns:
-    df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
-
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
     st.subheader("Inventario de productos")
     st.dataframe(df.reset_index(drop=True))
 
-    # ---------- CATEGORÍAS ----------
+    # 🔥 GRÁFICO CATEGORÍAS
     if "categoria" in df.columns:
         st.subheader("Productos por categoría")
-        st.bar_chart(df["categoria"].fillna("Sin categoría").value_counts())
+        st.bar_chart(df["categoria"].value_counts())
 
-    # ---------- STOCK ----------
+    # 🔥 GRÁFICO STOCK
     if "nombre" in df.columns and "stock" in df.columns:
-
         st.subheader("Stock por producto")
-
-        tmp = df[["nombre", "stock"]].dropna()
-        tmp = tmp[tmp["nombre"] != ""]
-
-        if not tmp.empty:
-            st.bar_chart(tmp.set_index("nombre"))
+        st.bar_chart(df.set_index("nombre")["stock"])
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
@@ -92,10 +81,10 @@ elif st.session_state.menu == "Crear":
         ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"]
     )
 
-    if st.button("Guardar"):
+    if st.button("Guardar producto"):
 
         if nombre.strip() == "":
-            st.error("Nombre obligatorio")
+            st.error("El nombre es obligatorio")
         else:
             create_product({
                 "nombre": nombre,
