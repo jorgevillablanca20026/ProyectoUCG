@@ -57,22 +57,25 @@ st.sidebar.info("Sistema de inventario con Streamlit + Supabase")
 rows = get_all()
 df = pd.DataFrame(rows)
 
-# 🔥 FIX: evitar errores de columnas
-if df.empty:
-    st.warning("No hay productos registrados")
-    st.stop()
+# 🔥 FIX IMPORTANTE: limpiar estructura
+df = df.dropna(how="all")
 
-for col in ["id", "nombre", "descripcion", "precio", "stock", "categoria"]:
+columnas = ["id", "nombre", "descripcion", "precio", "stock", "categoria"]
+
+for col in columnas:
     if col not in df.columns:
-        df[col] = None
+        df[col] = ""
+
+df = df[columnas]
 
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
     st.subheader("Inventario de productos")
-    st.dataframe(df)
 
-    if "categoria" in df.columns:
+    st.dataframe(df.reset_index(drop=True))
+
+    if not df.empty and "categoria" in df.columns:
         st.subheader("Productos por categoría")
         st.bar_chart(df["categoria"].value_counts())
 
