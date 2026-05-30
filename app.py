@@ -6,7 +6,6 @@ from crud_sqlite import create_product, get_all, update_stock, delete_product
 
 # ---------------- AUTH ----------------
 state = auth_router()
-
 if state != "ok":
     st.stop()
 
@@ -19,17 +18,9 @@ if "menu" not in st.session_state:
 if "msg" not in st.session_state:
     st.session_state.msg = ""
 
-# ---------------- MENSAJE ----------------
-if st.session_state.msg:
-    st.success(st.session_state.msg)
-    st.session_state.msg = ""
-
 # ---------------- DATA ----------------
 rows = get_all()
 df = pd.DataFrame(rows)
-
-st.subheader("Inventario de productos")
-st.dataframe(df)
 
 if df.empty:
     st.warning("No hay productos registrados")
@@ -61,13 +52,17 @@ if st.sidebar.button("Cerrar sesión"):
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
-    # 🔥 GRÁFICO CATEGORÍAS
+    st.subheader("Inventario de productos")
+    st.dataframe(df.reset_index(drop=True))
+
+    # ---------------- GRÁFICO CATEGORÍAS ----------------
     if "categoria" in df.columns:
         st.subheader("Productos por categoría")
         st.bar_chart(df["categoria"].astype(str).value_counts())
 
-    # 🔥 GRÁFICO STOCK
+    # ---------------- GRÁFICO STOCK ----------------
     if "nombre" in df.columns and "stock" in df.columns:
+
         st.subheader("Stock por producto")
 
         df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
