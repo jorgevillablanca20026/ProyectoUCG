@@ -25,44 +25,19 @@ if state != "ok":
 # ---------------- HEADER ----------------
 st.title(f"Sistema de Inventario - {st.session_state.user}")
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.title("📊 Panel de control")
-
-with st.sidebar.expander("📦 Inventario", expanded=True):
-    if st.button("Ver productos"):
-        st.session_state.menu = "Ver"
-
-with st.sidebar.expander("➕ Productos"):
-    if st.button("Registrar producto"):
-        st.session_state.menu = "Crear"
-
-with st.sidebar.expander("✏️ Gestión"):
-    if st.button("Editar stock"):
-        st.session_state.menu = "Editar"
-
-    if st.button("Eliminar producto"):
-        st.session_state.menu = "Eliminar"
-
-st.sidebar.markdown("---")
-
-if st.sidebar.button("🚪 Cerrar sesión"):
-    st.session_state.auth = False
-    st.session_state.user = ""
-    st.session_state.page = "login"
-    st.rerun()
-
-st.sidebar.info("Sistema de inventario con Streamlit + Supabase")
-
 # ---------------- DATA ----------------
 rows = get_all()
+
 df = pd.DataFrame(rows)
 
-# FIX seguro
 if df.empty:
     st.warning("No hay productos registrados")
     st.stop()
 
 df = df.fillna("")
+
+if "stock" in df.columns:
+    df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
 
 # ================= VER =================
 if st.session_state.menu == "Ver":
@@ -70,21 +45,19 @@ if st.session_state.menu == "Ver":
     st.subheader("Inventario de productos")
     st.dataframe(df.reset_index(drop=True))
 
-    # 🔥 GRÁFICO 1: CATEGORÍAS
+    # 🔥 GRÁFICO CATEGORÍAS (FORZADO)
     if "categoria" in df.columns and len(df) > 0:
         st.subheader("Productos por categoría")
-        cat_data = df["categoria"].value_counts()
-        if not cat_data.empty:
-            st.bar_chart(cat_data)
+        st.bar_chart(df.groupby("categoria").size())
 
-    # 🔥 GRÁFICO 2: STOCK
+    # 🔥 GRÁFICO STOCK (FORZADO)
     if "nombre" in df.columns and "stock" in df.columns:
         st.subheader("Stock por producto")
 
-        stock_df = df[["nombre", "stock"]].dropna()
-        if not stock_df.empty:
-            stock_df = stock_df.set_index("nombre")
-            st.bar_chart(stock_df)
+        chart_df = df.groupby("nombre")["stock"].sum()
+
+        if len(chart_df) > 0:
+            st.bar_chart(chart_df)
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
@@ -127,9 +100,8 @@ elif st.session_state.menu == "Editar":
     stock = st.number_input("Nuevo stock", min_value=0)
 
     if st.button("Actualizar"):
-
         update_stock(id_, stock)
-        st.session_state.msg = "Stock actualizado correctamente."
+        st.session_state.msg = "Stock actualizado"
         st.session_state.menu = "Ver"
         st.rerun()
 
@@ -141,8 +113,7 @@ elif st.session_state.menu == "Eliminar":
     id_ = st.number_input("ID del producto", min_value=1)
 
     if st.button("Eliminar"):
-
         delete_product(id_)
-        st.session_state.msg = "Producto eliminado correctamente."
+        st.session_state.msg = "Producto eliminado"
         st.session_state.menu = "Ver"
         st.rerun()
