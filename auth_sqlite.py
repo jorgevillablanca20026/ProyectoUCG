@@ -1,13 +1,15 @@
 import streamlit as st
-from database import get_conn
+from database import get_db
 
 
 # ---------------- INIT ----------------
 def init():
     if "auth" not in st.session_state:
         st.session_state.auth = False
+
     if "user" not in st.session_state:
         st.session_state.user = ""
+
     if "page" not in st.session_state:
         st.session_state.page = "login"
 
@@ -23,21 +25,22 @@ def login():
 
     if st.button("Ingresar"):
 
-        conn = get_conn()
-        c = conn.cursor()
+        db = get_db()
 
-        c.execute(
-            "SELECT * FROM users WHERE usuario=? AND password=?",
-            (u, p)
+        result = (
+            db.table("users")
+            .select("*")
+            .eq("usuario", u)
+            .eq("password", p)
+            .execute()
         )
 
-        user = c.fetchone()
-        conn.close()
+        if result.data:
 
-        if user:
             st.session_state.auth = True
             st.session_state.user = u
             st.rerun()
+
         else:
             st.error("Usuario o contraseña incorrectos")
 
@@ -58,24 +61,30 @@ def register():
 
     if st.button("Crear cuenta"):
 
-        conn = get_conn()
-        c = conn.cursor()
+        db = get_db()
 
-        try:
-            c.execute(
-                "INSERT INTO users (usuario, password) VALUES (?, ?)",
-                (u, p)
-            )
-            conn.commit()
-            conn.close()
+        existe = (
+            db.table("users")
+            .select("*")
+            .eq("usuario", u)
+            .execute()
+        )
 
-            st.success("Usuario creado correctamente")
-            st.session_state.page = "login"
-            st.rerun()
-
-        except:
-            conn.close()
+        if existe.data:
             st.error("El usuario ya existe")
+            return
+
+        db.table("users").insert(
+            {
+                "usuario": u,
+                "password": p
+            }
+        ).execute()
+
+        st.success("Usuario creado correctamente")
+
+        st.session_state.page = "login"
+        st.rerun()
 
     st.markdown("---")
 
