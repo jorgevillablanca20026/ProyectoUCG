@@ -55,34 +55,32 @@ st.sidebar.info("Sistema de inventario con Streamlit + Supabase")
 
 # ---------------- DATA ----------------
 rows = get_all()
+
 df = pd.DataFrame(rows)
 
-# 🔥 FIX IMPORTANTE: limpiar estructura
-df = df.dropna(how="all")
+# 🔥 FIX SEGURO
+if df.empty:
+    st.warning("No hay productos registrados")
+    st.stop()
 
-columnas = ["id", "nombre", "descripcion", "precio", "stock", "categoria"]
+df = df.fillna("")
 
-for col in columnas:
-    if col not in df.columns:
-        df[col] = ""
-
-df = df[columnas]
-
-# ================= VER =================
+# ---------------- VER ----------------
 if st.session_state.menu == "Ver":
 
     st.subheader("Inventario de productos")
 
     st.dataframe(df.reset_index(drop=True))
 
-    if not df.empty and "categoria" in df.columns:
+    if "categoria" in df.columns and not df.empty:
         st.subheader("Productos por categoría")
         st.bar_chart(df["categoria"].value_counts())
 
-    st.subheader("Stock por producto")
-    st.bar_chart(df.set_index("nombre")["stock"])
+    if "stock" in df.columns:
+        st.subheader("Stock por producto")
+        st.bar_chart(df.set_index("nombre")["stock"])
 
-# ================= CREAR =================
+# ---------------- CREAR ----------------
 elif st.session_state.menu == "Crear":
 
     st.subheader("Registrar producto")
@@ -114,7 +112,7 @@ elif st.session_state.menu == "Crear":
             st.session_state.menu = "Ver"
             st.rerun()
 
-# ================= EDITAR =================
+# ---------------- EDITAR ----------------
 elif st.session_state.menu == "Editar":
 
     st.subheader("Editar stock")
@@ -129,7 +127,7 @@ elif st.session_state.menu == "Editar":
         st.session_state.menu = "Ver"
         st.rerun()
 
-# ================= ELIMINAR =================
+# ---------------- ELIMINAR ----------------
 elif st.session_state.menu == "Eliminar":
 
     st.subheader("Eliminar producto")
