@@ -18,13 +18,12 @@ if "menu" not in st.session_state:
 if "msg" not in st.session_state:
     st.session_state.msg = ""
 
-# ---------------- MENSAJE ----------------
 if st.session_state.msg:
     st.success(st.session_state.msg)
     st.session_state.msg = ""
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("📊 Panel de control")
+st.sidebar.title("📊 Panel")
 
 with st.sidebar.expander("📦 Inventario", expanded=True):
     if st.button("Ver productos"):
@@ -52,26 +51,36 @@ if st.sidebar.button("🚪 Cerrar sesión"):
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
-    rows = get_all()
-    df = pd.DataFrame(rows)
+    # 🔥 SIEMPRE RECARGA DATA AQUÍ (CLAVE REAL)
+    df = pd.DataFrame(get_all())
 
     st.subheader("Inventario de productos")
     st.dataframe(df)
 
     if df.empty:
-        st.warning("No hay productos registrados")
+        st.warning("No hay productos")
         st.stop()
 
     df = df.fillna("")
 
+    # ================= CATEGORÍAS =================
     if "categoria" in df.columns:
         st.subheader("Productos por categoría")
-        st.bar_chart(df["categoria"].astype(str).value_counts())
 
+        cat = df["categoria"].astype(str).value_counts()
+        st.bar_chart(cat)
+
+    # ================= STOCK =================
     if "nombre" in df.columns and "stock" in df.columns:
         st.subheader("Stock por producto")
+
         df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
-        st.bar_chart(df.groupby("nombre")["stock"].sum())
+        df = df.dropna(subset=["nombre", "stock"])
+
+        chart = df.groupby("nombre")["stock"].sum()
+
+        if not chart.empty:
+            st.bar_chart(chart)
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
@@ -88,10 +97,10 @@ elif st.session_state.menu == "Crear":
         ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"]
     )
 
-    if st.button("Guardar producto"):
+    if st.button("Guardar"):
 
         if nombre.strip() == "":
-            st.error("El nombre es obligatorio")
+            st.error("Nombre obligatorio")
         else:
             create_product({
                 "nombre": nombre,
