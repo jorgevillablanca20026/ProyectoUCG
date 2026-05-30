@@ -23,7 +23,7 @@ if st.session_state.msg:
     st.session_state.msg = ""
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("📊 Panel")
+st.sidebar.title("📊 Panel de control")
 
 with st.sidebar.expander("📦 Inventario", expanded=True):
     if st.button("Ver productos"):
@@ -48,36 +48,54 @@ if st.sidebar.button("🚪 Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
+# ================= FUNCIÓN NORMALIZAR DATOS =================
+def normalizar(rows):
+    """
+    🔥 ARREGLA EL PROBLEMA REAL:
+    convierte cualquier respuesta rara de Supabase en DataFrame usable
+    """
+    if not rows:
+        return pd.DataFrame()
+
+    # si viene lista de dicts normal
+    if isinstance(rows[0], dict):
+        return pd.DataFrame(rows)
+
+    # si viene lista de tuplas
+    try:
+        return pd.DataFrame(rows, columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"])
+    except:
+        return pd.DataFrame(rows)
+
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
-    # 🔥 SIEMPRE RECARGA DATA AQUÍ (CLAVE REAL)
-    df = pd.DataFrame(get_all())
+    rows = get_all()
+    df = normalizar(rows)
 
     st.subheader("Inventario de productos")
     st.dataframe(df)
 
     if df.empty:
-        st.warning("No hay productos")
+        st.warning("No hay productos registrados")
         st.stop()
 
     df = df.fillna("")
 
-    # ================= CATEGORÍAS =================
+    # ---------------- GRÁFICO CATEGORÍAS ----------------
     if "categoria" in df.columns:
         st.subheader("Productos por categoría")
 
-        cat = df["categoria"].astype(str).value_counts()
-        st.bar_chart(cat)
+        st.bar_chart(df["categoria"].astype(str).value_counts())
 
-    # ================= STOCK =================
+    # ---------------- GRÁFICO STOCK ----------------
     if "nombre" in df.columns and "stock" in df.columns:
         st.subheader("Stock por producto")
 
         df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
-        df = df.dropna(subset=["nombre", "stock"])
 
-        chart = df.groupby("nombre")["stock"].sum()
+        chart = df.dropna(subset=["nombre", "stock"])
+        chart = chart.groupby("nombre")["stock"].sum()
 
         if not chart.empty:
             st.bar_chart(chart)
