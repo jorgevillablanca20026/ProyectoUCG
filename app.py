@@ -42,24 +42,29 @@ with tab1:
 
     st.subheader("📊 Panel general del inventario")
 
-    # --------- MÉTRICAS ---------
     if not df.empty:
+
+        # --------- MÉTRICAS ---------
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric("📦 Productos", len(df))
-        col2.metric("💰 Precio promedio", round(df["precio"].mean(), 2))
-        col3.metric("📊 Stock total", int(pd.to_numeric(df["stock"], errors="coerce").sum()))
+
+        # 💰 SUMA TOTAL DE PRECIOS
+        total_precio = pd.to_numeric(df["precio"], errors="coerce").sum()
+        col2.metric("💰 Total precios", round(total_precio, 2))
+
+        # 📊 STOCK TOTAL
+        stock_total = pd.to_numeric(df["stock"], errors="coerce").sum()
+        col3.metric("📊 Stock total", int(stock_total))
+
+        # 🏷️ CATEGORÍAS
         col4.metric("🏷️ Categorías", df["categoria"].nunique())
 
         st.divider()
 
         # --------- TABLA (ARRIBA) ---------
         st.markdown("### 📋 Inventario completo")
-        st.dataframe(
-            df,
-            use_container_width=True,
-            height=250
-        )
+        st.dataframe(df, use_container_width=True, height=250)
 
         st.divider()
 
@@ -85,37 +90,36 @@ with tab2:
 
     st.subheader("➕ Registrar producto")
 
-    with st.container():
-        col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-        with col1:
-            nombre = st.text_input("Nombre", key="create_nombre")
-            precio = st.number_input("Precio", min_value=0.0, key="create_precio")
+    with col1:
+        nombre = st.text_input("Nombre", key="create_nombre")
+        precio = st.number_input("Precio", min_value=0.0, key="create_precio")
 
-        with col2:
-            stock = st.number_input("Stock", min_value=0, key="create_stock")
-            categoria = st.selectbox(
-                "Categoría",
-                ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"],
-                key="create_categoria"
-            )
+    with col2:
+        stock = st.number_input("Stock", min_value=0, key="create_stock")
+        categoria = st.selectbox(
+            "Categoría",
+            ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"],
+            key="create_categoria"
+        )
 
-        descripcion = st.text_area("Descripción", key="create_desc")
+    descripcion = st.text_area("Descripción", key="create_desc")
 
-        if st.button("💾 Guardar producto", key="create_btn"):
-            if nombre.strip() == "":
-                st.error("El nombre es obligatorio")
-            else:
-                create_product({
-                    "nombre": nombre,
-                    "descripcion": descripcion,
-                    "precio": precio,
-                    "stock": stock,
-                    "categoria": categoria
-                })
+    if st.button("💾 Guardar producto", key="create_btn"):
+        if nombre.strip() == "":
+            st.error("El nombre es obligatorio")
+        else:
+            create_product({
+                "nombre": nombre,
+                "descripcion": descripcion,
+                "precio": precio,
+                "stock": stock,
+                "categoria": categoria
+            })
 
-                st.success("Producto creado correctamente")
-                st.rerun()
+            st.success("Producto creado correctamente")
+            st.rerun()
 
 # ================= EDITAR =================
 with tab3:
@@ -130,7 +134,7 @@ with tab3:
     with col2:
         stock = st.number_input("Nuevo stock", min_value=0, key="edit_stock")
 
-    if st.button("Actualizar", key="edit_btn"):
+    if st.button("Actualizar stock", key="edit_btn"):
         update_stock(id_, stock)
         st.success("Stock actualizado")
         st.rerun()
@@ -146,7 +150,6 @@ with tab4:
         id_ = st.number_input("ID del producto", min_value=1, key="delete_id")
 
     with col2:
-        st.write("")
         if st.button("Eliminar", key="delete_btn"):
             delete_product(id_)
             st.success("Producto eliminado")
