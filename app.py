@@ -5,14 +5,40 @@ from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="Inventario", layout="wide")
+st.set_page_config(page_title="Inventario Pro", layout="wide")
+
+# 🔥 ESTILO VISUAL (CSS SIMPLE)
+st.markdown("""
+<style>
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    div[data-testid="metric-container"] {
+        background-color: #0f172a;
+        border-radius: 12px;
+        padding: 12px;
+        color: white;
+        box-shadow: 0px 2px 10px rgba(0,0,0,0.2);
+    }
+
+    h1, h2, h3 {
+        color: #1f2937;
+    }
+
+    .stDataFrame {
+        border-radius: 12px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------- AUTH ----------------
 state = auth_router()
 if state != "ok":
     st.stop()
 
-st.title(f"📦 Sistema de Inventario - {st.session_state.user}")
+st.title(f"📦 Inventario Profesional - {st.session_state.user}")
 
 # ---------------- DATA ----------------
 def normalizar(rows):
@@ -26,8 +52,7 @@ def normalizar(rows):
         "id", "nombre", "descripcion", "precio", "stock", "categoria"
     ])
 
-rows = get_all()
-df = normalizar(rows)
+df = normalizar(get_all())
 
 # ---------------- TABS ----------------
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -40,47 +65,48 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # ================= DASHBOARD =================
 with tab1:
 
-    st.subheader("📊 Panel general del inventario")
+    st.markdown("## 📊 Panel de control")
 
     if not df.empty:
 
-        # --------- MÉTRICAS ---------
+        # --------- CARDS / MÉTRICAS ---------
         col1, col2, col3, col4 = st.columns(4)
 
-        col1.metric("📦 Productos", len(df))
+        with col1:
+            st.metric("📦 Productos", len(df))
 
-        # 💰 SUMA TOTAL DE PRECIOS
-        total_precio = pd.to_numeric(df["precio"], errors="coerce").sum()
-        col2.metric("💰 Total precios", round(total_precio, 2))
+        with col2:
+            total_precio = pd.to_numeric(df["precio"], errors="coerce").sum()
+            st.metric("💰 Total precios", round(total_precio, 2))
 
-        # 📊 STOCK TOTAL
-        stock_total = pd.to_numeric(df["stock"], errors="coerce").sum()
-        col3.metric("📊 Stock total", int(stock_total))
+        with col3:
+            stock_total = pd.to_numeric(df["stock"], errors="coerce").sum()
+            st.metric("📊 Stock total", int(stock_total))
 
-        # 🏷️ CATEGORÍAS
-        col4.metric("🏷️ Categorías", df["categoria"].nunique())
+        with col4:
+            st.metric("🏷️ Categorías", df["categoria"].nunique())
 
         st.divider()
 
         # --------- TABLA (ARRIBA) ---------
-        st.markdown("### 📋 Inventario completo")
-        st.dataframe(df, use_container_width=True, height=250)
+        with st.container():
+            st.markdown("### 📋 Inventario")
+            st.dataframe(df, use_container_width=True, height=260)
 
         st.divider()
 
         # --------- GRÁFICOS ---------
-        st.markdown("### 📊 Análisis del inventario")
+        st.markdown("### 📊 Análisis")
 
         colA, colB = st.columns(2)
 
         with colA:
-            st.markdown("#### Productos por categoría")
+            st.markdown("#### Categorías")
             st.bar_chart(df["categoria"].value_counts())
 
         with colB:
             st.markdown("#### Stock por producto")
-            chart = df.groupby("nombre")["stock"].sum()
-            st.bar_chart(chart)
+            st.bar_chart(df.groupby("nombre")["stock"].sum())
 
     else:
         st.warning("No hay productos registrados")
@@ -88,53 +114,55 @@ with tab1:
 # ================= CREAR =================
 with tab2:
 
-    st.subheader("➕ Registrar producto")
+    st.markdown("## ➕ Nuevo producto")
 
-    col1, col2 = st.columns(2)
+    with st.container():
 
-    with col1:
-        nombre = st.text_input("Nombre", key="create_nombre")
-        precio = st.number_input("Precio", min_value=0.0, key="create_precio")
+        col1, col2 = st.columns(2)
 
-    with col2:
-        stock = st.number_input("Stock", min_value=0, key="create_stock")
-        categoria = st.selectbox(
-            "Categoría",
-            ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"],
-            key="create_categoria"
-        )
+        with col1:
+            nombre = st.text_input("Nombre", key="create_nombre")
+            precio = st.number_input("Precio", min_value=0.0, key="create_precio")
 
-    descripcion = st.text_area("Descripción", key="create_desc")
+        with col2:
+            stock = st.number_input("Stock", min_value=0, key="create_stock")
+            categoria = st.selectbox(
+                "Categoría",
+                ["Periféricos", "Audio", "Laptops", "Celular", "Televisor", "Otro"],
+                key="create_categoria"
+            )
 
-    if st.button("💾 Guardar producto", key="create_btn"):
-        if nombre.strip() == "":
-            st.error("El nombre es obligatorio")
-        else:
-            create_product({
-                "nombre": nombre,
-                "descripcion": descripcion,
-                "precio": precio,
-                "stock": stock,
-                "categoria": categoria
-            })
+        descripcion = st.text_area("Descripción", key="create_desc")
 
-            st.success("Producto creado correctamente")
-            st.rerun()
+        if st.button("💾 Guardar", key="create_btn"):
+            if nombre.strip() == "":
+                st.error("Nombre obligatorio")
+            else:
+                create_product({
+                    "nombre": nombre,
+                    "descripcion": descripcion,
+                    "precio": precio,
+                    "stock": stock,
+                    "categoria": categoria
+                })
+
+                st.success("Producto creado")
+                st.rerun()
 
 # ================= EDITAR =================
 with tab3:
 
-    st.subheader("✏️ Actualizar stock")
+    st.markdown("## ✏️ Actualizar stock")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        id_ = st.number_input("ID del producto", min_value=1, key="edit_id")
+        id_ = st.number_input("ID producto", min_value=1, key="edit_id")
 
     with col2:
         stock = st.number_input("Nuevo stock", min_value=0, key="edit_stock")
 
-    if st.button("Actualizar stock", key="edit_btn"):
+    if st.button("Actualizar", key="edit_btn"):
         update_stock(id_, stock)
         st.success("Stock actualizado")
         st.rerun()
@@ -142,14 +170,15 @@ with tab3:
 # ================= ELIMINAR =================
 with tab4:
 
-    st.subheader("🗑️ Eliminar producto")
+    st.markdown("## 🗑️ Eliminar producto")
 
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        id_ = st.number_input("ID del producto", min_value=1, key="delete_id")
+        id_ = st.number_input("ID producto", min_value=1, key="delete_id")
 
     with col2:
+        st.write("")
         if st.button("Eliminar", key="delete_btn"):
             delete_product(id_)
             st.success("Producto eliminado")
