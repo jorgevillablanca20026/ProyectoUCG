@@ -1,45 +1,50 @@
-from database import get_conn
-
+from database import get_db
 
 def create_product(p):
-    conn = get_conn()
-    c = conn.cursor()
 
-    c.execute("""
-    INSERT INTO products (nombre, descripcion, precio, stock, categoria)
-    VALUES (?, ?, ?, ?, ?)
-    """, (p["nombre"], p["descripcion"], p["precio"], p["stock"], p["categoria"]))
+    db = get_db()
 
-    conn.commit()
-    conn.close()
+    db.table("products").insert({
+        "nombre": p["nombre"],
+        "descripcion": p["descripcion"],
+        "precio": float(p["precio"]),
+        "stock": int(p["stock"]),
+        "categoria": p["categoria"]
+    }).execute()
 
 
 def get_all():
-    conn = get_conn()
-    c = conn.cursor()
 
-    c.execute("SELECT * FROM products")
-    rows = c.fetchall()
+    db = get_db()
 
-    conn.close()
+    result = db.table("products").select("*").execute()
+
+    rows = []
+
+    for r in result.data:
+        rows.append((
+            r["id"],
+            r["nombre"],
+            r["descripcion"],
+            r["precio"],
+            r["stock"],
+            r["categoria"]
+        ))
+
     return rows
 
 
 def update_stock(id_, stock):
-    conn = get_conn()
-    c = conn.cursor()
 
-    c.execute("UPDATE products SET stock=? WHERE id=?", (stock, id_))
+    db = get_db()
 
-    conn.commit()
-    conn.close()
+    db.table("products").update({
+        "stock": int(stock)
+    }).eq("id", id_).execute()
 
 
 def delete_product(id_):
-    conn = get_conn()
-    c = conn.cursor()
 
-    c.execute("DELETE FROM products WHERE id=?", (id_,))
+    db = get_db()
 
-    conn.commit()
-    conn.close()
+    db.table("products").delete().eq("id", id_).execute()
