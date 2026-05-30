@@ -1,12 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-from database import init_db
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
-
-# ---------------- INIT ----------------
-init_db()
 
 # ---------------- STATE ----------------
 if "menu" not in st.session_state:
@@ -32,7 +28,6 @@ st.title(f"Sistema de Inventario - {st.session_state.user}")
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("📊 Panel de control")
 
-# --- ACORDEÓN ---
 with st.sidebar.expander("📦 Inventario", expanded=True):
     if st.button("Ver productos"):
         st.session_state.menu = "Ver"
@@ -48,7 +43,6 @@ with st.sidebar.expander("✏️ Gestión"):
     if st.button("Eliminar producto"):
         st.session_state.menu = "Eliminar"
 
-# ---------------- LOGOUT EN SIDEBAR ----------------
 st.sidebar.markdown("---")
 
 if st.sidebar.button("🚪 Cerrar sesión"):
@@ -57,20 +51,14 @@ if st.sidebar.button("🚪 Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-st.sidebar.info("Sistema de inventario con SQLite + Streamlit")
-
-# ---------------- MENU ACTUAL ----------------
-menu = st.session_state.menu
+st.sidebar.info("Sistema de inventario con Streamlit + Supabase")
 
 # ---------------- DATA ----------------
 rows = get_all()
-df = pd.DataFrame(
-    rows,
-    columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"]
-)
+df = pd.DataFrame(rows)
 
 # ================= VER =================
-if menu == "Ver":
+if st.session_state.menu == "Ver":
 
     st.subheader("Inventario de productos")
     st.dataframe(df)
@@ -83,7 +71,7 @@ if menu == "Ver":
         st.bar_chart(df.set_index("nombre")["stock"])
 
 # ================= CREAR =================
-elif menu == "Crear":
+elif st.session_state.menu == "Crear":
 
     st.subheader("Registrar producto")
 
@@ -115,7 +103,7 @@ elif menu == "Crear":
             st.rerun()
 
 # ================= EDITAR =================
-elif menu == "Editar":
+elif st.session_state.menu == "Editar":
 
     st.subheader("Editar stock")
 
@@ -130,7 +118,7 @@ elif menu == "Editar":
         st.rerun()
 
 # ================= ELIMINAR =================
-elif menu == "Eliminar":
+elif st.session_state.menu == "Eliminar":
 
     st.subheader("Eliminar producto")
 
