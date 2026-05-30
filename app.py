@@ -27,17 +27,40 @@ st.title(f"Sistema de Inventario - {st.session_state.user}")
 
 # ---------------- DATA ----------------
 rows = get_all()
-
 df = pd.DataFrame(rows)
 
+# 🔥 SI NO HAY DATOS
 if df.empty:
     st.warning("No hay productos registrados")
     st.stop()
 
 df = df.fillna("")
 
-if "stock" in df.columns:
-    df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
+# ---------------- SIDEBAR ----------------
+st.sidebar.title("📊 Panel de control")
+
+with st.sidebar.expander("📦 Inventario", expanded=True):
+    if st.button("Ver productos"):
+        st.session_state.menu = "Ver"
+
+with st.sidebar.expander("➕ Productos"):
+    if st.button("Registrar producto"):
+        st.session_state.menu = "Crear"
+
+with st.sidebar.expander("✏️ Gestión"):
+    if st.button("Editar stock"):
+        st.session_state.menu = "Editar"
+
+    if st.button("Eliminar producto"):
+        st.session_state.menu = "Eliminar"
+
+st.sidebar.markdown("---")
+
+if st.sidebar.button("🚪 Cerrar sesión"):
+    st.session_state.auth = False
+    st.session_state.user = ""
+    st.session_state.page = "login"
+    st.rerun()
 
 # ================= VER =================
 if st.session_state.menu == "Ver":
@@ -45,19 +68,17 @@ if st.session_state.menu == "Ver":
     st.subheader("Inventario de productos")
     st.dataframe(df.reset_index(drop=True))
 
-    # 🔥 GRÁFICO CATEGORÍAS (FORZADO)
-    if "categoria" in df.columns and len(df) > 0:
-        st.subheader("Productos por categoría")
-        st.bar_chart(df.groupby("categoria").size())
+    # 🔥 GRÁFICO CATEGORÍAS
+    if "categoria" in df.columns:
+        cat = df["categoria"].dropna()
+        if len(cat) > 0:
+            st.subheader("Productos por categoría")
+            st.bar_chart(cat.value_counts())
 
-    # 🔥 GRÁFICO STOCK (FORZADO)
+    # 🔥 GRÁFICO STOCK
     if "nombre" in df.columns and "stock" in df.columns:
         st.subheader("Stock por producto")
-
-        chart_df = df.groupby("nombre")["stock"].sum()
-
-        if len(chart_df) > 0:
-            st.bar_chart(chart_df)
+        st.bar_chart(df.set_index("nombre")["stock"])
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
