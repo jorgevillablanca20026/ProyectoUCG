@@ -23,67 +23,87 @@ if st.session_state.msg:
     st.session_state.msg = ""
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("📊 Menú")
+st.sidebar.title("📊 Panel de control")
 
-if st.sidebar.button("Ver productos"):
-    st.session_state.menu = "Ver"
+with st.sidebar.expander("📦 Inventario", expanded=True):
+    if st.button("Ver productos"):
+        st.session_state.menu = "Ver"
 
-if st.sidebar.button("Crear producto"):
-    st.session_state.menu = "Crear"
+with st.sidebar.expander("➕ Productos"):
+    if st.button("Registrar producto"):
+        st.session_state.menu = "Crear"
 
-if st.sidebar.button("Editar stock"):
-    st.session_state.menu = "Editar"
+with st.sidebar.expander("✏️ Gestión"):
+    if st.button("Editar stock"):
+        st.session_state.menu = "Editar"
 
-if st.sidebar.button("Eliminar"):
-    st.session_state.menu = "Eliminar"
+    if st.button("Eliminar producto"):
+        st.session_state.menu = "Eliminar"
 
-if st.sidebar.button("Cerrar sesión"):
+st.sidebar.markdown("---")
+
+if st.sidebar.button("🚪 Cerrar sesión"):
     st.session_state.auth = False
     st.session_state.user = ""
     st.session_state.page = "login"
     st.rerun()
 
+# ================= FUNCIÓN NORMALIZAR DATOS =================
+def normalizar(rows):
+    """
+    🔥 ARREGLA EL PROBLEMA REAL:
+    convierte cualquier respuesta rara de Supabase en DataFrame usable
+    """
+    if not rows:
+        return pd.DataFrame()
+
+    # si viene lista de dicts normal
+    if isinstance(rows[0], dict):
+        return pd.DataFrame(rows)
+
+    # si viene lista de tuplas
+    try:
+        return pd.DataFrame(rows, columns=["id", "nombre", "descripcion", "precio", "stock", "categoria"])
+    except:
+        return pd.DataFrame(rows)
+
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
     rows = get_all()
+    df = normalizar(rows)
 
-    # 🔥 PROTECCIÓN TOTAL
-    if not rows:
-        st.warning("No hay datos")
+    st.subheader("Inventario de productos")
+    st.dataframe(df)
+
+    if df.empty:
+        st.warning("No hay productos registrados")
         st.stop()
 
-    df = pd.DataFrame(rows)
     df = df.fillna("")
 
-    st.subheader("Productos")
-    st.dataframe(df.reset_index(drop=True))
-
-    # ================= GRÁFICO CATEGORÍAS =================
+    # ---------------- GRÁFICO CATEGORÍAS ----------------
     if "categoria" in df.columns:
-        st.subheader("Por categoría")
+        st.subheader("Productos por categoría")
 
-        try:
-            data = df["categoria"].astype(str).value_counts()
-            st.bar_chart(data)
-        except:
-            st.warning("No se pudo graficar categorías")
+        st.bar_chart(df["categoria"].astype(str).value_counts())
 
-    # ================= GRÁFICO STOCK =================
+    # ---------------- GRÁFICO STOCK ----------------
     if "nombre" in df.columns and "stock" in df.columns:
-        st.subheader("Stock")
+        st.subheader("Stock por producto")
 
-        try:
-            df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
-            chart = df.dropna(subset=["stock"]).groupby("nombre")["stock"].sum()
+        df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
+
+        chart = df.dropna(subset=["nombre", "stock"])
+        chart = chart.groupby("nombre")["stock"].sum()
+
+        if not chart.empty:
             st.bar_chart(chart)
-        except:
-            st.warning("No se pudo graficar stock")
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
 
-    st.subheader("Nuevo producto")
+    st.subheader("Registrar producto")
 
     nombre = st.text_input("Nombre")
     descripcion = st.text_input("Descripción")
@@ -97,7 +117,9 @@ elif st.session_state.menu == "Crear":
 
     if st.button("Guardar"):
 
-        if nombre.strip():
+        if nombre.strip() == "":
+            st.error("Nombre obligatorio")
+        else:
             create_product({
                 "nombre": nombre,
                 "descripcion": descripcion,
@@ -110,9 +132,6 @@ elif st.session_state.menu == "Crear":
             st.session_state.menu = "Ver"
             st.rerun()
 
-        else:
-            st.error("Nombre obligatorio")
-
 # ================= EDITAR =================
 elif st.session_state.menu == "Editar":
 
@@ -123,19 +142,19 @@ elif st.session_state.menu == "Editar":
 
     if st.button("Actualizar"):
         update_stock(id_, stock)
-        st.session_state.msg = "Actualizado"
+        st.session_state.msg = "Stock actualizado"
         st.session_state.menu = "Ver"
         st.rerun()
 
 # ================= ELIMINAR =================
 elif st.session_state.menu == "Eliminar":
 
-    st.subheader("Eliminar")
+    st.subheader("Eliminar producto")
 
     id_ = st.number_input("ID", min_value=1)
 
     if st.button("Eliminar"):
         delete_product(id_)
-        st.session_state.msg = "Eliminado"
+        st.session_state.msg = "Producto eliminado"
         st.session_state.menu = "Ver"
         st.rerun()
