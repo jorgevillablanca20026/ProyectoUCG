@@ -4,13 +4,6 @@ import pandas as pd
 from auth_sqlite import auth_router
 from crud_sqlite import create_product, get_all, update_stock, delete_product
 
-# ---------------- STATE ----------------
-if "menu" not in st.session_state:
-    st.session_state.menu = "Ver"
-
-if "msg" not in st.session_state:
-    st.session_state.msg = ""
-
 # ---------------- AUTH ----------------
 state = auth_router()
 
@@ -19,9 +12,24 @@ if state != "ok":
 
 st.title(f"Sistema de Inventario - {st.session_state.user}")
 
+# ---------------- STATE ----------------
+if "menu" not in st.session_state:
+    st.session_state.menu = "Ver"
+
+if "msg" not in st.session_state:
+    st.session_state.msg = ""
+
+# ---------------- MENSAJE ----------------
+if st.session_state.msg:
+    st.success(st.session_state.msg)
+    st.session_state.msg = ""
+
 # ---------------- DATA ----------------
 rows = get_all()
 df = pd.DataFrame(rows)
+
+st.subheader("Inventario de productos")
+st.dataframe(df)
 
 if df.empty:
     st.warning("No hay productos registrados")
@@ -30,7 +38,7 @@ if df.empty:
 df = df.fillna("")
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.title("📊 Panel")
+st.sidebar.title("📊 Panel de control")
 
 if st.sidebar.button("Ver productos"):
     st.session_state.menu = "Ver"
@@ -53,18 +61,21 @@ if st.sidebar.button("Cerrar sesión"):
 # ================= VER =================
 if st.session_state.menu == "Ver":
 
-    st.subheader("Inventario de productos")
-    st.dataframe(df.reset_index(drop=True))
-
     # 🔥 GRÁFICO CATEGORÍAS
     if "categoria" in df.columns:
         st.subheader("Productos por categoría")
-        st.bar_chart(df["categoria"].value_counts())
+        st.bar_chart(df["categoria"].astype(str).value_counts())
 
     # 🔥 GRÁFICO STOCK
     if "nombre" in df.columns and "stock" in df.columns:
         st.subheader("Stock por producto")
-        st.bar_chart(df.set_index("nombre")["stock"])
+
+        df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
+
+        chart = df.dropna(subset=["nombre", "stock"])
+        chart = chart.groupby("nombre")["stock"].sum()
+
+        st.bar_chart(chart)
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
