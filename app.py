@@ -18,17 +18,12 @@ if "menu" not in st.session_state:
 if "msg" not in st.session_state:
     st.session_state.msg = ""
 
-# ---------------- DATA ----------------
-rows = get_all()
-df = pd.DataFrame(rows)
+# ---------------- MENSAJE ----------------
+if st.session_state.msg:
+    st.success(st.session_state.msg)
+    st.session_state.msg = ""
 
-if df.empty:
-    st.warning("No hay productos registrados")
-    st.stop()
-
-df = df.fillna("")
-
-# ---------------- SIDEBAR (ACORDEÓN ORIGINAL) ----------------
+# ---------------- SIDEBAR (SE MANTIENE TU ACORDEÓN) ----------------
 st.sidebar.title("📊 Panel de control")
 
 with st.sidebar.expander("📦 Inventario", expanded=True):
@@ -54,8 +49,18 @@ if st.sidebar.button("🚪 Cerrar sesión"):
     st.session_state.page = "login"
     st.rerun()
 
-# ================= VER =================
+# ================= VER (AQUÍ SE ARREGLA TODO) =================
 if st.session_state.menu == "Ver":
+
+    # 🔥 IMPORTANTE: recargar datos aquí (esto arregla tus gráficos)
+    rows = get_all()
+    df = pd.DataFrame(rows)
+
+    if df.empty:
+        st.warning("No hay productos registrados")
+        st.stop()
+
+    df = df.fillna("")
 
     st.subheader("Inventario de productos")
     st.dataframe(df.reset_index(drop=True))
@@ -67,15 +72,12 @@ if st.session_state.menu == "Ver":
 
     # ---------------- GRÁFICO STOCK ----------------
     if "nombre" in df.columns and "stock" in df.columns:
-
         st.subheader("Stock por producto")
 
         df["stock"] = pd.to_numeric(df["stock"], errors="coerce")
-
         chart = df.dropna(subset=["nombre", "stock"])
-        chart = chart.groupby("nombre")["stock"].sum()
 
-        st.bar_chart(chart)
+        st.bar_chart(chart.groupby("nombre")["stock"].sum())
 
 # ================= CREAR =================
 elif st.session_state.menu == "Crear":
